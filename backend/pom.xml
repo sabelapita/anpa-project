@@ -193,9 +193,9 @@
                         </goals>
                         <configuration>
                             <driver>${jdbcDriver.className}</driver>
-                            <url>${testDataSource.url}</url>
-                            <username>${testDataSource.user}</username>
-                            <password>${testDataSource.password}</password>
+                            <url>jdbc:mysql://localhost:3306/anpa</url>
+                            <username>root</username>
+                            <password>root</password>
                             <autocommit>true</autocommit>
                             <onError>continue</onError>
                             <fileset>
