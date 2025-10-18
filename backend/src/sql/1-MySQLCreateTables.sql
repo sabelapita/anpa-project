@@ -1,3 +1,9 @@
+DROP TABLE IF EXISTS Enrollment;
+DROP TABLE IF EXISTS Activity;
+DROP TABLE IF EXISTS Post;
+DROP TABLE IF EXISTS Document;
+DROP TABLE IF EXISTS Message;
+DROP TABLE IF EXISTS Event;
 DROP TABLE IF EXISTS User;
 
 CREATE TABLE User (
@@ -14,7 +20,6 @@ CREATE TABLE User (
 
 CREATE INDEX UserIndexByUserName ON User (userName);
 
-DROP TABLE IF EXISTS Activity;
 CREATE TABLE Activity (
     id BIGINT NOT NULL AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,
@@ -25,22 +30,35 @@ CREATE TABLE Activity (
     CONSTRAINT ActivityPK PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
-DROP TABLE IF EXISTS Enrollment;
+DROP TABLE IF EXISTS Event;
+
+CREATE TABLE Event (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    eventDate DATE NOT NULL,
+    location VARCHAR(100),
+    isPublic BOOLEAN DEFAULT TRUE,
+    CONSTRAINT EventPK PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
 CREATE TABLE Enrollment (
     id BIGINT NOT NULL AUTO_INCREMENT,
     userId BIGINT NOT NULL,
     activityId BIGINT NOT NULL,
+    eventId BIGINT NOT NULL,
     paid BOOLEAN DEFAULT FALSE,
     paymentDate DATE,
     CONSTRAINT EnrollmentPK PRIMARY KEY (id),
     FOREIGN KEY (userId) REFERENCES User(id),
-    FOREIGN KEY (activityId) REFERENCES Activity(id)
+    FOREIGN KEY (activityId) REFERENCES Activity(id),
+    FOREIGN KEY (eventId) REFERENCES Event(id)
+
 ) ENGINE = InnoDB;
 
 CREATE INDEX EnrollmentIndexByUser ON Enrollment (userId);
 CREATE INDEX EnrollmentIndexByActivity ON Enrollment (activityId);
 
-DROP TABLE IF EXISTS Post;
 CREATE TABLE Post (
     id BIGINT NOT NULL AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,
@@ -54,7 +72,6 @@ CREATE TABLE Post (
 
 CREATE INDEX PostIndexByAuthor ON Post (createdBy);
 
-DROP TABLE IF EXISTS Document;
 CREATE TABLE Document (
     id BIGINT NOT NULL AUTO_INCREMENT,
     title VARCHAR(100),
@@ -63,7 +80,6 @@ CREATE TABLE Document (
     CONSTRAINT DocumentPK PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
-DROP TABLE IF EXISTS Message;
 CREATE TABLE Message (
     id BIGINT NOT NULL AUTO_INCREMENT,
     userId BIGINT NOT NULL,
