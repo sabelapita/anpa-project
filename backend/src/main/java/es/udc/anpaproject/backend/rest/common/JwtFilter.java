@@ -3,6 +3,7 @@ package es.udc.anpaproject.backend.rest.common;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,10 +16,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
-public class JwtFilter extends HttpFilter {
+public class JwtFilter extends OncePerRequestFilter {
 	
 	private JwtGenerator jwtGenerator;
+
 
 	public JwtFilter(JwtGenerator jwtGenerator) {
 
@@ -27,7 +30,7 @@ public class JwtFilter extends HttpFilter {
 	}
 
 	@Override
-	protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 		throws ServletException, IOException {
 
 		String path = request.getServletPath();
@@ -41,6 +44,7 @@ public class JwtFilter extends HttpFilter {
 		String authHeaderValue = request.getHeader(HttpHeaders.AUTHORIZATION);
 		// Si no hay token, dejar pasar (pero luego SecurityConfig exigirá autenticación)
 		if (authHeaderValue == null || !authHeaderValue.startsWith("Bearer ")) {
+			SecurityContextHolder.clearContext();
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -53,25 +57,20 @@ public class JwtFilter extends HttpFilter {
 			request.setAttribute("serviceToken", serviceToken);
 			request.setAttribute("userId", jwtInfo.getUserId());
 			
-			configureSecurityContext(jwtInfo.getRole());
-			
+			// Crear Authentication con el userId como principal
+            var authority = new SimpleGrantedAuthority("ROLE_" + jwtInfo.getRole());
+            var authentication = new UsernamePasswordAuthenticationToken(
+                    jwtInfo.getUserId(), null, List.of(authority));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
 		} catch (Exception e) {
-			 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			SecurityContextHolder.clearContext();
 			 return;
 		}
 		
 		filterChain.doFilter(request, response);
-		
-	}
-	
-	private void configureSecurityContext(String role) {
-		
-		Set<GrantedAuthority> authorities = new HashSet<>();
-		
-		authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
-		
-		SecurityContextHolder.getContext().setAuthentication(
-			new UsernamePasswordAuthenticationToken(null, null, authorities));
 		
 	}
 

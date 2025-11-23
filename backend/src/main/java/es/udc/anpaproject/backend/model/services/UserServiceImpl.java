@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.model.entities.User;
+import es.udc.anpaproject.backend.model.entities.User.RoleType;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.IncorrectPasswordException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
@@ -34,8 +35,12 @@ public class UserServiceImpl implements UserService {
 			
 		User user = UserConversor.toUser(userDto);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        user.setRole(User.RoleType.USER); // o ADMIN si aplicase
-
+        // Solo permitir ADMIN si viene explícitamente en el DTO
+		if (userDto.getRole() != null && userDto.getRole().equals("ADMIN")) {
+			user.setRole(RoleType.ADMIN);
+		} else {
+			user.setRole(RoleType.USER);
+		}
         return UserConversor.toUserDto(userRepository.save(user));
 		
 	}
