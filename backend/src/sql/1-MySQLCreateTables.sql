@@ -26,39 +26,30 @@ CREATE TABLE Activity (
     description TEXT,
     startDate DATE NOT NULL,
     endDate DATE NOT NULL,
+    price DOUBLE,
+    imageUrl VARCHAR(255),
+    type VARCHAR(50) NOT NULL, -- ACTIVITY o EVENT
     isPublic BOOLEAN DEFAULT TRUE,
-    CONSTRAINT ActivityPK PRIMARY KEY (id)
+    createdBy_id BIGINT,
+    CONSTRAINT ActivityPK PRIMARY KEY (id),
+    CONSTRAINT FK_Activity_User FOREIGN KEY (createdBy_id) REFERENCES User(id)
 ) ENGINE = InnoDB;
 
-DROP TABLE IF EXISTS Event;
-
-CREATE TABLE Event (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    eventDate DATE NOT NULL,
-    location VARCHAR(100),
-    isPublic BOOLEAN DEFAULT TRUE,
-    CONSTRAINT EventPK PRIMARY KEY (id)
-) ENGINE = InnoDB;
+CREATE INDEX ActivityIndexByCreator ON Activity (createdBy_id);
 
 CREATE TABLE Enrollment (
     id BIGINT NOT NULL AUTO_INCREMENT,
     userId BIGINT NOT NULL,
     activityId BIGINT NOT NULL,
-    eventId BIGINT NOT NULL,
     paid BOOLEAN DEFAULT FALSE,
     paymentDate DATE,
     CONSTRAINT EnrollmentPK PRIMARY KEY (id),
     FOREIGN KEY (userId) REFERENCES User(id),
-    FOREIGN KEY (activityId) REFERENCES Activity(id),
-    FOREIGN KEY (eventId) REFERENCES Event(id)
-
+    FOREIGN KEY (activityId) REFERENCES Activity(id)
 ) ENGINE = InnoDB;
 
 CREATE INDEX EnrollmentIndexByUser ON Enrollment (userId);
 CREATE INDEX EnrollmentIndexByActivity ON Enrollment (activityId);
-
 CREATE TABLE Post (
     id BIGINT NOT NULL AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,

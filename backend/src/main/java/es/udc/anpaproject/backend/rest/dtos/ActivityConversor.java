@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ActivityConversor {
+    
+    private ActivityConversor(){}
 
     public static ActivityDto toActivityDto(Activity activity) {
         return new ActivityDto(

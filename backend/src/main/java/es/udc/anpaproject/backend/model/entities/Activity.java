@@ -6,6 +6,7 @@ import java.util.List;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.ManyToOne;
@@ -29,7 +30,7 @@ public class Activity {
     @Enumerated(EnumType.STRING)
     private ActivityType type;  // ACTIVITY o EVENT
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private User createdBy;  // Usuario ADMIN que la creó
 
     @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)

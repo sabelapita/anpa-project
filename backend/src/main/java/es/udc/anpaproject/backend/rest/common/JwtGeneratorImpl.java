@@ -39,10 +39,12 @@ public class JwtGeneratorImpl implements JwtGenerator {
 		.parseClaimsJws(token)
 		.getBody();
 
+		Number idNumber = (Number) claims.get("userId");
+    	Long userId = idNumber.longValue();
 		
-		return new JwtInfo(
-			((Integer) claims.get("userId")).longValue(), 
-			(String) claims.get("role"));
+		String role = claims.get("role").toString();
+
+		return new JwtInfo(userId, role);
 		
 	}
 

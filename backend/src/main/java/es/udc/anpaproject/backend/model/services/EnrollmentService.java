@@ -6,13 +6,15 @@ import es.udc.anpaproject.backend.model.daos.EnrollmentRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.rest.dtos.EnrollmentConversor;
 import es.udc.anpaproject.backend.rest.dtos.EnrollmentDto;
-import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
+@Transactional
 public class EnrollmentService {
 
     @Autowired
@@ -25,7 +27,6 @@ public class EnrollmentService {
     private ActivityRepository activityRepository;
 
 
-    @Transactional
     public EnrollmentDto enroll(Long userId, Long activityId) {
 
         User user = userRepository.findById(userId)
@@ -71,7 +72,6 @@ public class EnrollmentService {
 
 
     /** Cancelar inscripción */
-    @Transactional
     public void unsubscribeFromActivity(Long userId, Long activityId) {
 
         // Validamos actividad para no devolver error engañoso
