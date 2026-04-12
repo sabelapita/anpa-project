@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.rest.dtos;
+/*package es.udc.anpaproject.backend.rest.dtos;
 
 import es.udc.anpaproject.backend.model.entities.Enrollment;
 
@@ -23,3 +23,4 @@ public class EnrollmentConversor {
                 .collect(Collectors.toList());
     }
 }
+*/

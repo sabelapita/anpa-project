@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.model.entities;
+/*package es.udc.anpaproject.backend.model.entities;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -72,4 +72,4 @@ public class Activity {
     public void setEnrollments(List<Enrollment> enrollments) { this.enrollments = enrollments; }
 
 }
-
+*/

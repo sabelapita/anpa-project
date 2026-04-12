@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.rest.dtos;
+/*package es.udc.anpaproject.backend.rest.dtos;
 
 import es.udc.anpaproject.backend.model.entities.Activity;
 import java.util.List;
@@ -50,3 +50,4 @@ public class ActivityConversor {
     }
 
 }
+*/

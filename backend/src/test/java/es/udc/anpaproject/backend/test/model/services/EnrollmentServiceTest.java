@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.test.model.services;
+/*package es.udc.anpaproject.backend.test.model.services;
 
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
 import es.udc.anpaproject.backend.model.daos.EnrollmentRepository;
@@ -36,7 +36,6 @@ public class EnrollmentServiceTest {
     private ActivityRepository activityRepository;
 
 
-    /* =========================== HELPERS =========================== */
 
     private User user(Long id) {
         User u = new User();
@@ -52,7 +51,6 @@ public class EnrollmentServiceTest {
     }
 
 
-    /* =========================== ENROLL =========================== */
 
     @Test
     public void testEnrollCorrect() {
@@ -124,7 +122,6 @@ public class EnrollmentServiceTest {
     }
 
 
-    /* =========================== FIND USER ENROLLMENTS =========================== */
 
     @Test
     public void testFindUserEnrollments() {
@@ -143,7 +140,6 @@ public class EnrollmentServiceTest {
     }
 
 
-    /* =========================== FIND BY ACTIVITY =========================== */
 
     @Test
     public void testFindEnrollmentsByActivity() {
@@ -164,7 +160,6 @@ public class EnrollmentServiceTest {
     }
 
 
-    /* =========================== UNSUBSCRIBE =========================== */
 
     @Test
     public void testUnsubscribeCorrect() {
@@ -208,3 +203,4 @@ public class EnrollmentServiceTest {
                 () -> enrollmentService.unsubscribeFromActivity(1L, 10L));
     }
 }
+*/

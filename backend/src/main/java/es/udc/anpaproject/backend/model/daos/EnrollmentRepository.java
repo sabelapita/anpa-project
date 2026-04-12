@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.model.daos;
+/*package es.udc.anpaproject.backend.model.daos;
 
 import es.udc.anpaproject.backend.model.entities.Enrollment;
 import es.udc.anpaproject.backend.model.entities.User;
@@ -20,3 +20,4 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     void deleteByActivityId(Long activityId);
 
 }
+*/

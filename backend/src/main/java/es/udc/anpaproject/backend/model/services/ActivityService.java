@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.model.services;
+/*package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
@@ -118,3 +118,4 @@ public class ActivityService {
                 .toList();
     }
 }
+*/

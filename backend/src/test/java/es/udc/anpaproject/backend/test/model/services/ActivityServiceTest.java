@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.test.model.services;
+/*package es.udc.anpaproject.backend.test.model.services;
 
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
@@ -33,10 +33,10 @@ public class ActivityServiceTest {
 
     @MockBean
     private UserRepository userRepository;
-
+*/
 
     /* =========================== HELPERS =========================== */
-
+/* 
     private ActivityDto createDto() {
         ActivityDto dto = new ActivityDto();
         dto.setTitle("Fútbol");
@@ -63,10 +63,10 @@ public class ActivityServiceTest {
         return u;
     }
 
-
+*/
     /* =========================== CREATE =========================== */
 
-    @Test
+  /*  @Test
     public void testCreateActivityWithoutImage() throws Exception {
 
         ActivityDto dto = createDto();
@@ -116,10 +116,10 @@ public class ActivityServiceTest {
         assertEquals(20L, result.getId());
         assertEquals("Fútbol", result.getTitle());
     }
-
+*/
 
     /* =========================== UPDATE =========================== */
-
+/* 
     @Test
     public void testUpdateActivityAsAdmin() {
 
@@ -155,9 +155,9 @@ public class ActivityServiceTest {
         );
     }
 
-
+*/
     /* =========================== DELETE =========================== */
-
+/* 
     @Test
     public void testDeleteActivityAsAdmin() {
 
@@ -186,4 +186,4 @@ public class ActivityServiceTest {
                 activityService.deleteActivity(40L, 2L)
         );
     }
-}
+}*/

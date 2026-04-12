@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.model.services;
+/*package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.entities.*;
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
@@ -50,29 +50,29 @@ public class EnrollmentService {
         return EnrollmentConversor.toEnrollmentDto(enrollment);
     }
 
-
+/* 
     /** Enrollments de un usuario */
-    public List<EnrollmentDto> findUserEnrollments(Long userId) {
+/*    public List<EnrollmentDto> findUserEnrollments(Long userId) {
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         return EnrollmentConversor.toEnrollmentDtos(enrollmentRepository.findByUser(user));
-    }
+    }*/
 
 
     /** Enrollments de una actividad */
-    public List<EnrollmentDto> findEnrollmentsByActivity(Long activityId) {
+    /*public List<EnrollmentDto> findEnrollmentsByActivity(Long activityId) {
 
         Activity activity = activityRepository.findById(activityId)
             .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
 
         return EnrollmentConversor.toEnrollmentDtos(enrollmentRepository.findByActivity(activity));
-    }
+    }*/
 
 
     /** Cancelar inscripción */
-    public void unsubscribeFromActivity(Long userId, Long activityId) {
+    /*public void unsubscribeFromActivity(Long userId, Long activityId) {
 
         // Validamos actividad para no devolver error engañoso
         activityRepository.findById(activityId)
@@ -85,3 +85,4 @@ public class EnrollmentService {
         enrollmentRepository.delete(enrollment);
     }
 }
+*/

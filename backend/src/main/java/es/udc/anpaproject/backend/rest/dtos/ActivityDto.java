@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.rest.dtos;
+/*package es.udc.anpaproject.backend.rest.dtos;
 
 import java.time.LocalDate;
 
@@ -64,3 +64,4 @@ public class ActivityDto {
         public ActivityType getType() { return type; }
     public void setType(ActivityType type) { this.type = type; }
 }
+*/

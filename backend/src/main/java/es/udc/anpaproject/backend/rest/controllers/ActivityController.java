@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.rest.controllers;
+/*package es.udc.anpaproject.backend.rest.controllers;
 
 import es.udc.anpaproject.backend.model.services.ActivityService;
 import es.udc.anpaproject.backend.rest.dtos.ActivityDto;
@@ -48,3 +48,4 @@ public class ActivityController {
         activityService.deleteActivity(id, userId);
     }
 }
+*/

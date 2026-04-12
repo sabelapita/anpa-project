@@ -1,4 +1,4 @@
-package es.udc.anpaproject.backend.model.entities;
+/*package es.udc.anpaproject.backend.model.entities;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -42,4 +42,4 @@ public class Enrollment {
     public void setPaid(boolean paid) { this.paid = paid; }
     public LocalDate getPaymentDate() { return paymentDate; }
     public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
-}
+}*/
