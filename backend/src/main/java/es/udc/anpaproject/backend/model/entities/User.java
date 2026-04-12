@@ -2,6 +2,8 @@ package es.udc.anpaproject.backend.model.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -13,8 +15,6 @@ import jakarta.persistence.UniqueConstraint;
        uniqueConstraints = {@UniqueConstraint(columnNames = {"userName"})})
 public class User {
 	
-	public enum RoleType {USER, ADMIN, GUEST};
-
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -34,10 +34,9 @@ public class User {
     @Column(nullable = false, length = 60)
 	private String email;
 
+	@Enumerated(EnumType.ORDINAL)
     @Column(nullable = false)
 	private RoleType role;
-
-	// ----- Constructores -----
 
 	public User() {}
 
@@ -52,7 +51,6 @@ public class User {
 		
 	}
 
-    // ----- Getters y Setters -----
 	
 	public Long getId() {
 		return id;

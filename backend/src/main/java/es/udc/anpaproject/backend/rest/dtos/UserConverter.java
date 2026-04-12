@@ -2,9 +2,9 @@ package es.udc.anpaproject.backend.rest.dtos;
 
 import es.udc.anpaproject.backend.model.entities.User;
 
-public class UserConversor {
+public class UserConverter {
 	
-	private UserConversor() {}
+	private UserConverter() {}
 	
 	public final static UserDto toUserDto(User user) {
 		return new UserDto(user.getId(), user.getUserName(), user.getFirstName(), user.getLastName(), user.getEmail(),
@@ -17,9 +17,9 @@ public class UserConversor {
 			userDto.getEmail());
 	}
 	
-	public final static AuthenticatedUserDto toAuthenticatedUserDto(String serviceToken, User user) {
+	public final static AuthenticatedUserDto toAuthenticatedUserDto(String token, User user) {
 		
-		return new AuthenticatedUserDto(serviceToken, toUserDto(user));
+		return new AuthenticatedUserDto(token, toUserDto(user));
 		
 	}
 	public static AuthenticatedUserDto toAuthenticatedUserDto(String token, UserDto userDto) {
