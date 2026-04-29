@@ -1,6 +1,7 @@
-/*package es.udc.anpaproject.backend.rest.controllers;
+package es.udc.anpaproject.backend.rest.controllers;
 
 import es.udc.anpaproject.backend.rest.dtos.EnrollmentDto;
+import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.services.EnrollmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -15,27 +16,31 @@ public class EnrollmentController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/{activityId}")
-    public EnrollmentDto enroll(@PathVariable Long activityId, @RequestAttribute Long userId) {
-        return enrollmentService.enroll(userId, activityId);
+    public EnrollmentDto enroll(@PathVariable Long activityId, @RequestAttribute Long userId) 
+        throws InstanceNotFoundException {
+            return enrollmentService.enroll(userId, activityId);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/my")
-    public List<EnrollmentDto> myEnrollments(@RequestAttribute Long userId) {
-        return enrollmentService.findUserEnrollments(userId);
+    public List<EnrollmentDto> myEnrollments(@RequestAttribute Long userId) 
+        throws InstanceNotFoundException {
+            return enrollmentService.findUserEnrollments(userId);
     }
 
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/activity/{activityId}")
-    public List<EnrollmentDto> getEnrollmentsByActivity(@PathVariable Long activityId) {
-        return enrollmentService.findEnrollmentsByActivity(activityId);
+    public List<EnrollmentDto> getEnrollmentsByActivity(@PathVariable Long activityId) 
+        throws InstanceNotFoundException {
+            return enrollmentService.findEnrollmentsByActivity(activityId);
     }
 
 
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{activityId}")
-    public void unsubscribe(@PathVariable Long activityId, @RequestAttribute Long userId) {
-        enrollmentService.unsubscribeFromActivity(userId, activityId);
+    public void unsubscribe(@PathVariable Long activityId, @RequestAttribute Long userId) 
+        throws InstanceNotFoundException {
+            enrollmentService.unsubscribeFromActivity(userId, activityId);
     }
-}*/
+}

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import es.udc.anpaproject.backend.model.exceptions.AlreadyEnrolledException;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
@@ -23,6 +24,8 @@ public class CommonControllerAdvice {
 	private final static String INSTANCE_NOT_FOUND_EXCEPTION_CODE = "project.exceptions.InstanceNotFoundException";
 	private final static String DUPLICATE_INSTANCE_EXCEPTION_CODE = "project.exceptions.DuplicateInstanceException";
 	private final static String PERMISSION_EXCEPTION_CODE = "project.exceptions.PermissionException";
+	private final static String ALREADY_ENROLLED_EXCEPTION_CODE = "project.exceptions.AlreadyEnrolledException";
+
 	
 	@Autowired
 	private MessageSource messageSource;
@@ -75,6 +78,17 @@ public class CommonControllerAdvice {
 
 		return new ErrorsDto(errorMessage);
 		
+	}
+	
+	@ExceptionHandler(AlreadyEnrolledException.class)
+	@ResponseStatus(HttpStatus.CONFLICT) 
+	@ResponseBody
+	public ErrorsDto handleAlreadyEnrolledException(AlreadyEnrolledException exception, Locale locale) {
+		
+		String errorMessage = messageSource.getMessage(ALREADY_ENROLLED_EXCEPTION_CODE, null, 
+				ALREADY_ENROLLED_EXCEPTION_CODE, locale);
+
+		return new ErrorsDto(errorMessage);
 	}
 
 }

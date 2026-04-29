@@ -1,4 +1,4 @@
-/*package es.udc.anpaproject.backend.rest.dtos;
+package es.udc.anpaproject.backend.rest.dtos;
 
 import java.time.LocalDate;
 
@@ -54,7 +54,7 @@ public class ActivityDto {
     public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
     public Double getPrice() { return price; }
     
-    @NotNull
+    
     public void setPrice(Double price) { this.price = price; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) {
@@ -64,4 +64,3 @@ public class ActivityDto {
         public ActivityType getType() { return type; }
     public void setType(ActivityType type) { this.type = type; }
 }
-*/

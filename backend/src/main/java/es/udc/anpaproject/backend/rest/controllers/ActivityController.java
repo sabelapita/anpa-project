@@ -1,13 +1,18 @@
-/*package es.udc.anpaproject.backend.rest.controllers;
+package es.udc.anpaproject.backend.rest.controllers;
 
+import es.udc.anpaproject.backend.model.entities.Activity;
+import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.ActivityService;
+import es.udc.anpaproject.backend.model.services.Block;
+import es.udc.anpaproject.backend.rest.dtos.ActivityConverter;
 import es.udc.anpaproject.backend.rest.dtos.ActivityDto;
+import es.udc.anpaproject.backend.rest.dtos.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
-import java.util.List;
 
 @RestController
 @RequestMapping("/activities")
@@ -21,31 +26,53 @@ public class ActivityController {
     public ActivityDto createActivity(
             @RequestPart("data") ActivityDto dto,
             @RequestPart(value = "image", required = false) MultipartFile image,
-            @RequestAttribute Long userId) throws IOException {
+            @RequestAttribute Long userId) throws IOException, PermissionException, InstanceNotFoundException {
 
         return activityService.createActivity(dto, userId, image);
     }
 
     @GetMapping
-    public List<ActivityDto> getAll() {
-        return activityService.findAll();
+    public BlockDto<ActivityDto> getAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        
+        Block<Activity> block = activityService.findActivities(page, size);
+        
+        return new BlockDto<>(
+            ActivityConverter.toActivityDtos(block.getItems()),
+            block.getExistMoreItems()
+        );
     }
 
     @GetMapping("/{id}")
-    public ActivityDto getById(@PathVariable Long id) {
+    public ActivityDto getById(@PathVariable Long id) throws InstanceNotFoundException {
         return activityService.findById(id);
     }
     
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ActivityDto update(@PathVariable Long id, @RequestBody ActivityDto dto, @RequestAttribute Long userId) {
+    public ActivityDto update(
+            @PathVariable Long id, 
+            @RequestBody ActivityDto dto, 
+            @RequestAttribute Long userId) throws InstanceNotFoundException, PermissionException {
         return activityService.updateActivity(id, dto, userId);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void delete(@PathVariable Long id, @RequestAttribute Long userId) {
+    public void delete(
+            @PathVariable Long id, 
+            @RequestAttribute Long userId) throws InstanceNotFoundException, PermissionException {
         activityService.deleteActivity(id, userId);
     }
+
+    @PostMapping(consumes = "application/json")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ActivityDto createActivityJson(
+            @RequestBody ActivityDto dto,
+            @RequestAttribute Long userId)
+            throws IOException, PermissionException, InstanceNotFoundException {
+
+        return activityService.createActivity(dto, userId, null);
+    }
 }
-*/

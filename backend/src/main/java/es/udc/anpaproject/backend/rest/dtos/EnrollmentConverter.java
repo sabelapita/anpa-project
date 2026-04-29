@@ -1,11 +1,11 @@
-/*package es.udc.anpaproject.backend.rest.dtos;
+package es.udc.anpaproject.backend.rest.dtos;
 
 import es.udc.anpaproject.backend.model.entities.Enrollment;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class EnrollmentConversor {
+public class EnrollmentConverter {
 
     public static EnrollmentDto toEnrollmentDto(Enrollment e) {
         return new EnrollmentDto(
@@ -19,8 +19,7 @@ public class EnrollmentConversor {
 
     public static List<EnrollmentDto> toEnrollmentDtos(List<Enrollment> enrollments) {
         return enrollments.stream()
-                .map(EnrollmentConversor::toEnrollmentDto)
+                .map(EnrollmentConverter::toEnrollmentDto)
                 .collect(Collectors.toList());
     }
 }
-*/

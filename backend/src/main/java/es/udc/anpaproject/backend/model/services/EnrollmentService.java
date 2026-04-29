@@ -1,10 +1,11 @@
-/*package es.udc.anpaproject.backend.model.services;
+package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.entities.*;
+import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
 import es.udc.anpaproject.backend.model.daos.EnrollmentRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
-import es.udc.anpaproject.backend.rest.dtos.EnrollmentConversor;
+import es.udc.anpaproject.backend.rest.dtos.EnrollmentConverter;
 import es.udc.anpaproject.backend.rest.dtos.EnrollmentDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,20 +23,19 @@ public class EnrollmentService {
 
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private ActivityRepository activityRepository;
 
-
-    public EnrollmentDto enroll(Long userId, Long activityId) {
+    public EnrollmentDto enroll(Long userId, Long activityId)
+            throws InstanceNotFoundException {
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
 
         Activity activity = activityRepository.findById(activityId)
-            .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.activity", activityId));
 
-        // Evitar inscripción en eventos si procede
         if (activity.getType() == ActivityType.EVENT) {
             throw new RuntimeException("No puedes inscribirte en un evento");
         }
@@ -44,45 +44,42 @@ public class EnrollmentService {
             throw new RuntimeException("El usuario ya está inscrito en esta actividad");
         }
 
-        Enrollment enrollment = new Enrollment(user, activity);  // paymentDate = null
+        Enrollment enrollment = new Enrollment(user, activity);
         enrollment = enrollmentRepository.save(enrollment);
 
-        return EnrollmentConversor.toEnrollmentDto(enrollment);
+        return EnrollmentConverter.toEnrollmentDto(enrollment);
     }
 
-/* 
-    /** Enrollments de un usuario */
-/*    public List<EnrollmentDto> findUserEnrollments(Long userId) {
+    @Transactional(readOnly = true)
+    public List<EnrollmentDto> findUserEnrollments(Long userId)
+            throws InstanceNotFoundException {
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
 
-        return EnrollmentConversor.toEnrollmentDtos(enrollmentRepository.findByUser(user));
-    }*/
+        return EnrollmentConverter.toEnrollmentDtos(enrollmentRepository.findByUser(user));
+    }
 
-
-    /** Enrollments de una actividad */
-    /*public List<EnrollmentDto> findEnrollmentsByActivity(Long activityId) {
+    @Transactional(readOnly = true)
+    public List<EnrollmentDto> findEnrollmentsByActivity(Long activityId)
+            throws InstanceNotFoundException {
 
         Activity activity = activityRepository.findById(activityId)
-            .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.activity", activityId));
 
-        return EnrollmentConversor.toEnrollmentDtos(enrollmentRepository.findByActivity(activity));
-    }*/
+        return EnrollmentConverter.toEnrollmentDtos(enrollmentRepository.findByActivity(activity));
+    }
 
+    public void unsubscribeFromActivity(Long userId, Long activityId)
+            throws InstanceNotFoundException {
 
-    /** Cancelar inscripción */
-    /*public void unsubscribeFromActivity(Long userId, Long activityId) {
-
-        // Validamos actividad para no devolver error engañoso
         activityRepository.findById(activityId)
-            .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.activity", activityId));
 
         Enrollment enrollment = enrollmentRepository
-            .findByUserIdAndActivityId(userId, activityId)
-            .orElseThrow(() -> new RuntimeException("No estás inscrito en esta actividad"));
+                .findByUserIdAndActivityId(userId, activityId)
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.enrollment", activityId));
 
         enrollmentRepository.delete(enrollment);
     }
 }
-*/

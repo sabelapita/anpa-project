@@ -16,8 +16,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import es.udc.anpaproject.backend.model.exceptions.*;
 import es.udc.anpaproject.backend.model.services.UserService;
 import es.udc.anpaproject.backend.rest.common.ErrorsDto;
-import es.udc.anpaproject.backend.rest.common.JwtGenerator;
-import es.udc.anpaproject.backend.rest.common.JwtInfo;
 import es.udc.anpaproject.backend.rest.dtos.AuthenticatedUserDto;
 import es.udc.anpaproject.backend.rest.dtos.ChangePasswordParamsDto;
 import es.udc.anpaproject.backend.rest.dtos.LoginParamsDto; // ¡Añadido!

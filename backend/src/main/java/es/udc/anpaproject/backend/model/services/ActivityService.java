@@ -1,14 +1,18 @@
-/*package es.udc.anpaproject.backend.model.services;
+package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.model.entities.Activity;
 import es.udc.anpaproject.backend.model.entities.User;
-import es.udc.anpaproject.backend.model.entities.User.RoleType;
-import es.udc.anpaproject.backend.rest.dtos.ActivityConversor;
+import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.entities.RoleType;
+import es.udc.anpaproject.backend.model.exceptions.PermissionException;
+import es.udc.anpaproject.backend.rest.dtos.ActivityConverter;
 import es.udc.anpaproject.backend.rest.dtos.ActivityDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,81 +36,79 @@ public class ActivityService {
 
     private final Path uploadDir = Paths.get("uploads");
 
-    public ActivityDto createActivity(ActivityDto dto, Long userId, MultipartFile image) throws IOException {
-
-        // 1. Usuario creador
+    public ActivityDto createActivity(ActivityDto dto, Long userId, MultipartFile image) 
+            throws InstanceNotFoundException,  PermissionException,  IOException{
         User creator = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
+        
+        if (creator.getRole() != RoleType.ADMIN) {
+            throw new PermissionException();
+        }
 
-        // 2. DTO -> entidad
-        Activity activity = ActivityConversor.toActivityEntity(dto);
+        Activity activity = ActivityConverter.toActivityEntity(dto);
         activity.setCreatedBy(creator);
 
-        // 3. Si viene imagen, la guardamos y fijamos imageUrl
-        if (image != null && !image.isEmpty()) {
+         if (image != null && !image.isEmpty()) {
 
-            // Crear carpeta /uploads si no existe
             if (!Files.exists(uploadDir)) {
                 Files.createDirectories(uploadDir);
             }
 
-            // Nombre de archivo único
-            String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
-
-            // Ruta final
+            String originalFilename = image.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + originalFilename;
             Path filePath = uploadDir.resolve(fileName);
 
-            // Guardar fichero
             Files.copy(image.getInputStream(), filePath);
 
-            // URL que guardamos en BD
             activity.setImageUrl("/uploads/" + fileName);
         }
 
-        // 4. Guardar actividad
         Activity saved = activityRepository.save(activity);
 
-        // 5. Devolver DTO
-        return ActivityConversor.toActivityDto(saved);
+        return ActivityConverter.toActivityDto(saved);
     }
 
-
-    public List<ActivityDto> findAll() {
-        return ActivityConversor.toActivityDtos(activityRepository.findAll());
+    @Transactional(readOnly = true)
+    public Block<Activity> findActivities(int page, int size) {
+        Slice<Activity> slice = activityRepository.findByOrderByTitleAsc(PageRequest.of(page, size));
+        return new Block<>(slice.getContent(), slice.hasNext());
     }
-
+    
+    @Transactional(readOnly = true)
     public ActivityDto findById(Long id) {
         Activity activity = activityRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
-        return ActivityConversor.toActivityDto(activity);
+        return ActivityConverter.toActivityDto(activity);
     }
 
     
-    public ActivityDto updateActivity(Long id, ActivityDto dto, Long userId) {
+    public ActivityDto updateActivity(Long id, ActivityDto dto, Long userId) 
+        throws InstanceNotFoundException, PermissionException{
         Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        if (user.getRole() != RoleType.ADMIN) {
-            throw new RuntimeException("No tienes permiso para editar actividades");
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.activity", id));
+        
+                User user = userRepository.findById(userId)
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
+        
+                if (user.getRole() != RoleType.ADMIN) {
+                    throw new PermissionException();
         }
 
-        ActivityConversor.merge(activity, dto);
+        ActivityConverter.merge(activity, dto);
         Activity updated = activityRepository.save(activity);
-        return ActivityConversor.toActivityDto(updated);
+        return ActivityConverter.toActivityDto(updated);
     }
 
-    public void deleteActivity(Long id, Long userId) {
+    public void deleteActivity(Long id, Long userId)  
+        throws InstanceNotFoundException,PermissionException{
         Activity activity = activityRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Actividad no encontrada"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.activity", id));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
 
         if (user.getRole() != RoleType.ADMIN) {
-            throw new RuntimeException("No tienes permiso para eliminar actividades");
+            throw new PermissionException();
         }
 
         activityRepository.delete(activity);
@@ -114,8 +116,7 @@ public class ActivityService {
 
     public static List<ActivityDto> toActivityDtos(List<Activity> activities) {
         return activities.stream()
-                .map(ActivityConversor::toActivityDto)
+                .map(ActivityConverter::toActivityDto)
                 .toList();
     }
 }
-*/

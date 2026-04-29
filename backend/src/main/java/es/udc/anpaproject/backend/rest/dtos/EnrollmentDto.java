@@ -1,4 +1,4 @@
-/*package es.udc.anpaproject.backend.rest.dtos;
+package es.udc.anpaproject.backend.rest.dtos;
 
 import java.time.LocalDate;
 
@@ -31,4 +31,3 @@ public class EnrollmentDto {
     public LocalDate getPaymentDate() { return paymentDate; }
     public void setPaymentDate(LocalDate paymentDate) { this.paymentDate = paymentDate; }
 }
-*/

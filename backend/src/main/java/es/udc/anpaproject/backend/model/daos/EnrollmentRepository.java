@@ -1,8 +1,8 @@
-/*package es.udc.anpaproject.backend.model.daos;
+package es.udc.anpaproject.backend.model.daos;
 
 import es.udc.anpaproject.backend.model.entities.Enrollment;
 import es.udc.anpaproject.backend.model.entities.User;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import es.udc.anpaproject.backend.model.entities.Activity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -20,4 +20,3 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     void deleteByActivityId(Long activityId);
 
 }
-*/

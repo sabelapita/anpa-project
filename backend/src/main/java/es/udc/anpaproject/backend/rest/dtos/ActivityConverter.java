@@ -1,12 +1,12 @@
-/*package es.udc.anpaproject.backend.rest.dtos;
+package es.udc.anpaproject.backend.rest.dtos;
 
 import es.udc.anpaproject.backend.model.entities.Activity;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ActivityConversor {
+public class ActivityConverter {
     
-    private ActivityConversor(){}
+    private ActivityConverter(){}
 
     public static ActivityDto toActivityDto(Activity activity) {
         return new ActivityDto(
@@ -23,7 +23,7 @@ public class ActivityConversor {
 
     public static List<ActivityDto> toActivityDtos(List<Activity> activities) {
         return activities.stream()
-                .map(ActivityConversor::toActivityDto)
+                .map(ActivityConverter::toActivityDto)
                 .collect(Collectors.toList());
     }
 
@@ -50,4 +50,3 @@ public class ActivityConversor {
     }
 
 }
-*/
