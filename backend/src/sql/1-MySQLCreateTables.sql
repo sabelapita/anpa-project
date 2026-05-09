@@ -52,13 +52,15 @@ CREATE INDEX EnrollmentIndexByUser ON Enrollment (userId);
 CREATE INDEX EnrollmentIndexByActivity ON Enrollment (activityId);
 CREATE TABLE Post (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    title VARCHAR(100) NOT NULL,
-    content TEXT,
+    title VARCHAR(200) NOT NULL,
+    content TEXT NOT NULL,
     category VARCHAR(50),
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    createdBy BIGINT,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP NULL,
+    published BOOLEAN NOT NULL DEFAULT TRUE,
+    createdBy BIGINT NOT NULL,
     CONSTRAINT PostPK PRIMARY KEY (id),
-    FOREIGN KEY (createdBy) REFERENCES User(id)
+    CONSTRAINT FK_Post_User FOREIGN KEY (createdBy) REFERENCES User(id)
 ) ENGINE = InnoDB;
 
 CREATE INDEX PostIndexByAuthor ON Post (createdBy);
