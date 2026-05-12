@@ -1,12 +1,17 @@
 package es.udc.anpaproject.backend.rest.controllers;
 
-import es.udc.anpaproject.backend.rest.dtos.EnrollmentDto;
+import es.udc.anpaproject.backend.model.exceptions.DuplicateEnrollmentException;
+import es.udc.anpaproject.backend.model.exceptions.EnrollmentNotAllowedException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.services.EnrollmentService;
+import es.udc.anpaproject.backend.rest.dtos.EnrollmentDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.List;
+
 @RestController
 @RequestMapping("/enrollments")
 public class EnrollmentController {
@@ -16,31 +21,37 @@ public class EnrollmentController {
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/{activityId}")
-    public EnrollmentDto enroll(@PathVariable Long activityId, @RequestAttribute Long userId) 
-        throws InstanceNotFoundException {
-            return enrollmentService.enroll(userId, activityId);
+    public EnrollmentDto enroll(@PathVariable Long activityId,
+                                @RequestAttribute Long userId)
+            throws InstanceNotFoundException,
+            EnrollmentNotAllowedException,
+            DuplicateEnrollmentException {
+
+        return enrollmentService.enroll(userId, activityId);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/my")
-    public List<EnrollmentDto> myEnrollments(@RequestAttribute Long userId) 
-        throws InstanceNotFoundException {
-            return enrollmentService.findUserEnrollments(userId);
-    }
+    public List<EnrollmentDto> myEnrollments(@RequestAttribute Long userId)
+            throws InstanceNotFoundException {
 
+        return enrollmentService.findUserEnrollments(userId);
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/activity/{activityId}")
-    public List<EnrollmentDto> getEnrollmentsByActivity(@PathVariable Long activityId) 
-        throws InstanceNotFoundException {
-            return enrollmentService.findEnrollmentsByActivity(activityId);
-    }
+    public List<EnrollmentDto> getEnrollmentsByActivity(@PathVariable Long activityId)
+            throws InstanceNotFoundException {
 
+        return enrollmentService.findEnrollmentsByActivity(activityId);
+    }
 
     @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{activityId}")
-    public void unsubscribe(@PathVariable Long activityId, @RequestAttribute Long userId) 
-        throws InstanceNotFoundException {
-            enrollmentService.unsubscribeFromActivity(userId, activityId);
+    public void unsubscribe(@PathVariable Long activityId,
+                            @RequestAttribute Long userId)
+            throws InstanceNotFoundException {
+
+        enrollmentService.unsubscribeFromActivity(userId, activityId);
     }
 }

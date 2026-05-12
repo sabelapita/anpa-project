@@ -1,206 +1,263 @@
-/*package es.udc.anpaproject.backend.test.model.services;
+package es.udc.anpaproject.backend.test.model.services;
 
-import es.udc.anpaproject.backend.model.daos.ActivityRepository;
-import es.udc.anpaproject.backend.model.daos.EnrollmentRepository;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+
 import es.udc.anpaproject.backend.model.daos.UserRepository;
-import es.udc.anpaproject.backend.model.entities.*;
 import es.udc.anpaproject.backend.model.entities.ActivityType;
+import es.udc.anpaproject.backend.model.entities.RoleType;
+import es.udc.anpaproject.backend.model.entities.User;
+import es.udc.anpaproject.backend.model.exceptions.DuplicateEnrollmentException;
+import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
+import es.udc.anpaproject.backend.model.exceptions.EnrollmentNotAllowedException;
+import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.PermissionException;
+import es.udc.anpaproject.backend.model.services.ActivityService;
 import es.udc.anpaproject.backend.model.services.EnrollmentService;
+import es.udc.anpaproject.backend.model.services.UserService;
+import es.udc.anpaproject.backend.rest.dtos.ActivityDto;
 import es.udc.anpaproject.backend.rest.dtos.EnrollmentDto;
+import es.udc.anpaproject.backend.rest.dtos.UserDto;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.Optional;
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
+@Transactional
 public class EnrollmentServiceTest {
 
     @Autowired
     private EnrollmentService enrollmentService;
 
-    @MockBean
-    private EnrollmentRepository enrollmentRepository;
+    @Autowired
+    private ActivityService activityService;
 
-    @MockBean
+    @Autowired
+    private UserService userService;
+
+    @Autowired
     private UserRepository userRepository;
 
-    @MockBean
-    private ActivityRepository activityRepository;
+    private UserDto createUser(String userName) throws DuplicateInstanceException {
+        UserDto userDto = new UserDto(
+                null,
+                userName,
+                "Test",
+                "User",
+                userName + "@udc.es",
+                "USER"
+        );
 
+        userDto.setPassword("password");
 
-
-    private User user(Long id) {
-        User u = new User();
-        u.setId(id);
-        return u;
+        return userService.signUp(userDto);
     }
 
-    private Activity activity(Long id, ActivityType type) {
-        Activity a = new Activity();
-        ReflectionTestUtils.setField(a, "id", id);
-        a.setType(type);
-        return a;
+    private UserDto createAdmin(String userName)
+            throws DuplicateInstanceException, InstanceNotFoundException {
+
+        UserDto userDto = createUser(userName);
+
+        User user = userRepository.findById(userDto.getId())
+                .orElseThrow(() ->
+                        new InstanceNotFoundException(
+                                "project.entities.user",
+                                userDto.getId()
+                        )
+                );
+
+        user.setRole(RoleType.ADMIN);
+        userRepository.save(user);
+
+        return userDto;
     }
 
+    private ActivityDto createActivityDto(String title, ActivityType type) {
+        ActivityDto dto = new ActivityDto();
 
+        dto.setTitle(title);
+        dto.setDescription("Descripción de prueba");
+        dto.setStartDate(LocalDate.now().plusDays(7));
+        dto.setEndDate(LocalDate.now().plusDays(30));
+        dto.setPrice(25.0);
+        dto.setType(type);
 
-    @Test
-    public void testEnrollCorrect() {
-        User u = user(1L);
-        Activity a = activity(10L, ActivityType.ACTIVITY);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
-        when(activityRepository.findById(10L)).thenReturn(Optional.of(a));
-        when(enrollmentRepository.existsByUserAndActivity(u, a)).thenReturn(false);
-
-        when(enrollmentRepository.save(any(Enrollment.class)))
-            .thenAnswer(invocation -> {
-                Enrollment e = invocation.getArgument(0);
-                ReflectionTestUtils.setField(e, "id", 100L);
-                return e;
-            });
-
-        EnrollmentDto dto = enrollmentService.enroll(1L, 10L);
-
-        assertEquals(100L, dto.getId());
-        assertEquals(1L, dto.getUserId());
-        assertEquals(10L, dto.getActivityId());
+        return dto;
     }
 
+    private ActivityDto createActivity(String title, ActivityType type)
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
 
-    @Test
-    public void testEnrollEventForbidden() {
-        User u = user(1L);
-        Activity event = activity(10L, ActivityType.EVENT);
+        UserDto admin = createAdmin("admin" + title.replace(" ", ""));
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
-        when(activityRepository.findById(10L)).thenReturn(Optional.of(event));
-
-        assertThrows(RuntimeException.class,
-                () -> enrollmentService.enroll(1L, 10L));
-    }
-
-
-    @Test
-    public void testEnrollAlreadyExists() {
-        User u = user(1L);
-        Activity a = activity(10L, ActivityType.ACTIVITY);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
-        when(activityRepository.findById(10L)).thenReturn(Optional.of(a));
-        when(enrollmentRepository.existsByUserAndActivity(u, a)).thenReturn(true);
-
-        assertThrows(RuntimeException.class,
-                () -> enrollmentService.enroll(1L, 10L));
-    }
-
-
-    @Test
-    public void testEnrollUserNotFound() {
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class,
-                () -> enrollmentService.enroll(999L, 10L));
-    }
-
-
-    @Test
-    public void testEnrollActivityNotFound() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user(1L)));
-        when(activityRepository.findById(10L)).thenReturn(Optional.empty());
-
-        assertThrows(RuntimeException.class,
-                () -> enrollmentService.enroll(1L, 10L));
-    }
-
-
-
-    @Test
-    public void testFindUserEnrollments() {
-
-        User u = user(1L);
-        Enrollment e = new Enrollment(u, activity(10L, ActivityType.ACTIVITY));
-        ReflectionTestUtils.setField(e, "id", 200L);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(u));
-        when(enrollmentRepository.findByUser(u)).thenReturn(List.of(e));
-
-        List<EnrollmentDto> list = enrollmentService.findUserEnrollments(1L);
-
-        assertEquals(1, list.size());
-        assertEquals(200L, list.get(0).getId());
-    }
-
-
-
-    @Test
-    public void testFindEnrollmentsByActivity() {
-
-        Activity a = activity(10L, ActivityType.ACTIVITY);
-        User u = user(1L);
-
-        Enrollment e = new Enrollment(u, a);
-        ReflectionTestUtils.setField(e, "id", 300L);
-
-        when(activityRepository.findById(10L)).thenReturn(Optional.of(a));
-        when(enrollmentRepository.findByActivity(a)).thenReturn(List.of(e));
-
-        List<EnrollmentDto> list = enrollmentService.findEnrollmentsByActivity(10L);
-
-        assertEquals(1, list.size());
-        assertEquals(300L, list.get(0).getId());
-    }
-
-
-
-    @Test
-    public void testUnsubscribeCorrect() {
-
-        Activity a = activity(10L, ActivityType.ACTIVITY);
-        User u = user(1L);
-
-        Enrollment e = new Enrollment(u, a);
-        ReflectionTestUtils.setField(e, "id", 400L);
-
-        when(activityRepository.findById(10L)).thenReturn(Optional.of(a));
-        when(enrollmentRepository.findByUserIdAndActivityId(1L, 10L))
-                .thenReturn(Optional.of(e));
-
-        assertDoesNotThrow(() ->
-                enrollmentService.unsubscribeFromActivity(1L, 10L)
+        return activityService.createActivity(
+                createActivityDto(title, type),
+                admin.getId(),
+                null
         );
     }
 
-
     @Test
-    public void testUnsubscribeNotEnrolled() {
+    public void testEnrollUserInActivity()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException,
+            EnrollmentNotAllowedException, DuplicateEnrollmentException {
 
-        Activity a = activity(10L, ActivityType.ACTIVITY);
+        UserDto user = createUser("enrollUser");
+        ActivityDto activity = createActivity("Futbol", ActivityType.ACTIVITY);
 
-        when(activityRepository.findById(10L)).thenReturn(Optional.of(a));
-        when(enrollmentRepository.findByUserIdAndActivityId(1L, 10L))
-                .thenReturn(Optional.empty());
+        EnrollmentDto enrollment = enrollmentService.enroll(
+                user.getId(),
+                activity.getId()
+        );
 
-        assertThrows(RuntimeException.class,
-                () -> enrollmentService.unsubscribeFromActivity(1L, 10L));
+        assertNotNull(enrollment.getId());
+        assertEquals(user.getId(), enrollment.getUserId());
+        assertEquals(activity.getId(), enrollment.getActivityId());
+        assertFalse(enrollment.isPaid());
+        assertNull(enrollment.getPaymentDate());
     }
 
+    @Test
+    public void testDuplicateEnrollmentThrowsDuplicateEnrollmentException()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException,
+            EnrollmentNotAllowedException, DuplicateEnrollmentException {
+
+        UserDto user = createUser("duplicateEnrollUser");
+        ActivityDto activity = createActivity("Musica", ActivityType.ACTIVITY);
+
+        enrollmentService.enroll(user.getId(), activity.getId());
+
+        assertThrows(DuplicateEnrollmentException.class, () -> {
+            enrollmentService.enroll(user.getId(), activity.getId());
+        });
+    }
 
     @Test
-    public void testUnsubscribeActivityNotFound() {
+    public void testCannotEnrollInEvent()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
 
-        when(activityRepository.findById(10L)).thenReturn(Optional.empty());
+        UserDto user = createUser("eventEnrollUser");
+        ActivityDto event = createActivity("ReunionInformativa", ActivityType.EVENT);
 
-        assertThrows(RuntimeException.class,
-                () -> enrollmentService.unsubscribeFromActivity(1L, 10L));
+        assertThrows(EnrollmentNotAllowedException.class, () -> {
+            enrollmentService.enroll(user.getId(), event.getId());
+        });
+    }
+
+    @Test
+    public void testFindUserEnrollments()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException,
+            EnrollmentNotAllowedException, DuplicateEnrollmentException {
+
+        UserDto user = createUser("findEnrollmentsUser");
+        ActivityDto activity = createActivity("Robotica", ActivityType.ACTIVITY);
+
+        EnrollmentDto enrollment = enrollmentService.enroll(
+                user.getId(),
+                activity.getId()
+        );
+
+        List<EnrollmentDto> enrollments = enrollmentService.findUserEnrollments(
+                user.getId()
+        );
+
+        assertFalse(enrollments.isEmpty());
+
+        assertTrue(
+                enrollments.stream()
+                        .anyMatch(e -> e.getId().equals(enrollment.getId()))
+        );
+    }
+
+    @Test
+    public void testFindEnrollmentsByActivity()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException,
+            EnrollmentNotAllowedException, DuplicateEnrollmentException {
+
+        UserDto user = createUser("activityEnrollmentsUser");
+        ActivityDto activity = createActivity("Dibujo", ActivityType.ACTIVITY);
+
+        EnrollmentDto enrollment = enrollmentService.enroll(
+                user.getId(),
+                activity.getId()
+        );
+
+        List<EnrollmentDto> enrollments = enrollmentService.findEnrollmentsByActivity(
+                activity.getId()
+        );
+
+        assertFalse(enrollments.isEmpty());
+
+        assertTrue(
+                enrollments.stream()
+                        .anyMatch(e -> e.getId().equals(enrollment.getId()))
+        );
+    }
+
+    @Test
+    public void testUnsubscribeFromActivity()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException,
+            EnrollmentNotAllowedException, DuplicateEnrollmentException {
+
+        UserDto user = createUser("unsubscribeUser");
+        ActivityDto activity = createActivity("Patinaje", ActivityType.ACTIVITY);
+
+        enrollmentService.enroll(user.getId(), activity.getId());
+
+        enrollmentService.unsubscribeFromActivity(
+                user.getId(),
+                activity.getId()
+        );
+
+        List<EnrollmentDto> enrollments = enrollmentService.findUserEnrollments(
+                user.getId()
+        );
+
+        assertTrue(
+                enrollments.stream()
+                        .noneMatch(e -> e.getActivityId().equals(activity.getId()))
+        );
+    }
+
+    @Test
+    public void testUnsubscribeFromNonExistingEnrollmentThrowsInstanceNotFoundException()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
+
+        UserDto user = createUser("unsubscribeNonExistingUser");
+        ActivityDto activity = createActivity("Manualidades", ActivityType.ACTIVITY);
+
+        assertThrows(InstanceNotFoundException.class, () -> {
+            enrollmentService.unsubscribeFromActivity(
+                    user.getId(),
+                    activity.getId()
+            );
+        });
+    }
+
+    @Test
+    public void testFindUserEnrollmentsWithNonExistentUserThrowsInstanceNotFoundException() {
+        assertThrows(InstanceNotFoundException.class, () -> {
+            enrollmentService.findUserEnrollments(-1L);
+        });
+    }
+
+    @Test
+    public void testFindEnrollmentsByNonExistentActivityThrowsInstanceNotFoundException() {
+        assertThrows(InstanceNotFoundException.class, () -> {
+            enrollmentService.findEnrollmentsByActivity(-1L);
+        });
     }
 }
-*/

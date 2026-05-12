@@ -13,7 +13,9 @@ public class EnrollmentConverter {
                 e.getUser().getId(),
                 e.getActivity().getId(),
                 e.isPaid(),
-                e.getPaymentDate()
+                e.getPaymentDate(),
+                e.getPaymentStatus(),
+                e.getAmountCents()
         );
     }
 

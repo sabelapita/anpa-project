@@ -41,8 +41,15 @@ CREATE TABLE Enrollment (
     id BIGINT NOT NULL AUTO_INCREMENT,
     userId BIGINT NOT NULL,
     activityId BIGINT NOT NULL,
+
     paid BOOLEAN DEFAULT FALSE,
     paymentDate DATE,
+
+    paymentStatus VARCHAR(30) NOT NULL DEFAULT 'PENDING',
+    amountCents INT,
+    stripeSessionId VARCHAR(255),
+    stripePaymentIntentId VARCHAR(255),
+
     CONSTRAINT EnrollmentPK PRIMARY KEY (id),
     FOREIGN KEY (userId) REFERENCES User(id),
     FOREIGN KEY (activityId) REFERENCES Activity(id)
@@ -67,22 +74,27 @@ CREATE INDEX PostIndexByAuthor ON Post (createdBy);
 
 CREATE TABLE Document (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    title VARCHAR(100),
-    filePath VARCHAR(255),
-    uploadedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT DocumentPK PRIMARY KEY (id)
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    fileName VARCHAR(255) NOT NULL,
+    filePath VARCHAR(255) NOT NULL,
+    contentType VARCHAR(100),
+    uploadedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    uploadedBy BIGINT NOT NULL,
+    CONSTRAINT DocumentPK PRIMARY KEY (id),
+    CONSTRAINT FK_Document_User FOREIGN KEY (uploadedBy) REFERENCES User(id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE Message (
     id BIGINT NOT NULL AUTO_INCREMENT,
     userId BIGINT NOT NULL,
-    subject VARCHAR(100),
+    subject VARCHAR(100) NOT NULL,
     content TEXT NOT NULL,
-    sentAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sentAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     response TEXT,
     respondedAt TIMESTAMP,
     CONSTRAINT MessagePK PRIMARY KEY (id),
-    FOREIGN KEY (userId) REFERENCES User(id)
+    CONSTRAINT FK_Message_User FOREIGN KEY (userId) REFERENCES User(id)
 ) ENGINE = InnoDB;
 
 CREATE INDEX MessageIndexByUser ON Message (userId);

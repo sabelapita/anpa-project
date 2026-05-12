@@ -53,6 +53,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/enrollments/my").hasRole("USER")
                 .requestMatchers(HttpMethod.GET, "/enrollments/**").hasRole("ADMIN")
 
+                // PAYMENTS
+                .requestMatchers(HttpMethod.POST, "/payments/checkout/**").hasRole("USER")
+
                 // BLOG
                 .requestMatchers(HttpMethod.GET, "/posts/admin").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
@@ -60,6 +63,17 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/posts/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/posts/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/posts/**").hasRole("ADMIN")
+                
+                // DOCUMENTS
+                .requestMatchers(HttpMethod.GET, "/documents/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/documents/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/documents/**").hasRole("ADMIN")
+                
+                // MESSAGES
+                .requestMatchers(HttpMethod.GET, "/messages/all").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/messages/**").hasRole("USER")
+                .requestMatchers(HttpMethod.POST, "/messages/**").hasRole("USER")
+                .requestMatchers(HttpMethod.PUT, "/messages/*/response").hasRole("ADMIN")
                 .anyRequest().denyAll()
             );
 
