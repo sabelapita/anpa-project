@@ -16,6 +16,9 @@ spring:
       remove-abandoned-timeout: 60
       log-abandoned: true
       validation-query: SELECT 1
+  messages:
+    basename: messages
+    encoding: UTF-8
   devtools:
     restart:
       trigger-file: reload
@@ -33,7 +36,7 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 stripe:
   secret-key: sk_test_51TWJlxKIrE7RXHVwCgMxtxKCuPN4DBni6tmTKP6urZVgpqUFsZL8fYOOWlGUTn5jRY6hdQU6n7Bi8kJg5D87dVku00lzYJGgTJ
-  webhook-secret: ""
+  webhook-secret: whsec_b5619bf6c2efc132f1334f7b105c972cdf56ec0a354d5faa21188d04f597ccc7
   success-url: http://localhost:3000/payment/success
   cancel-url: http://localhost:3000/payment/cancel
 project:

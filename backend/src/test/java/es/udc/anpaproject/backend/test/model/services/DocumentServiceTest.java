@@ -13,6 +13,7 @@ import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.model.services.DocumentService;
@@ -102,7 +103,7 @@ public class DocumentServiceTest {
     @Test
     public void testUploadDocumentAsAdmin()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, IOException, InvalidFileException {
 
         UserDto admin = createAdmin("adminDocs");
 
@@ -143,7 +144,7 @@ public class DocumentServiceTest {
     }
 
     @Test
-    public void testUploadEmptyFileThrowsIOException()
+    public void testUploadEmptyFileThrowsInvalidFileException()
             throws DuplicateInstanceException, InstanceNotFoundException {
 
         UserDto admin = createAdmin("adminEmptyFile");
@@ -155,7 +156,7 @@ public class DocumentServiceTest {
                 new byte[0]
         );
 
-        assertThrows(IOException.class, () -> {
+        assertThrows(InvalidFileException.class, () -> {
             documentService.uploadDocument(
                     createDocumentDto(),
                     admin.getId(),
@@ -167,7 +168,7 @@ public class DocumentServiceTest {
     @Test
     public void testFindById()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, IOException, InvalidFileException  {
 
         UserDto admin = createAdmin("adminFindDoc");
 
@@ -191,7 +192,7 @@ public class DocumentServiceTest {
     @Test
     public void testGetDocumentForDownload()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, IOException, InvalidFileException  {
 
         UserDto admin = createAdmin("adminDownloadDoc");
 
@@ -215,7 +216,7 @@ public class DocumentServiceTest {
     @Test
     public void testFindDocuments()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, IOException, InvalidFileException  {
 
         UserDto admin = createAdmin("adminListDocs");
 
@@ -243,7 +244,7 @@ public class DocumentServiceTest {
     @Test
     public void testDeleteDocumentAsAdmin()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, IOException, InvalidFileException  {
 
         UserDto admin = createAdmin("adminDeleteDoc");
 
@@ -270,7 +271,7 @@ public class DocumentServiceTest {
     @Test
     public void testDeleteDocumentAsNormalUserThrowsPermissionException()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, IOException, InvalidFileException  {
 
         UserDto admin = createAdmin("adminDeletePermission");
         UserDto normalUser = createUser("normalDeletePermission");

@@ -2,6 +2,7 @@ package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.entities.Document;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.rest.dtos.DocumentDto;
 
@@ -16,7 +17,8 @@ public interface DocumentService {
     DocumentDto findById(Long documentId) throws InstanceNotFoundException;
 
     DocumentDto uploadDocument(DocumentDto dto, Long userId, MultipartFile file)
-            throws InstanceNotFoundException, PermissionException, IOException;
+        throws InstanceNotFoundException, PermissionException, IOException, InvalidFileException;
+
 
     Document getDocumentForDownload(Long documentId)
             throws InstanceNotFoundException;

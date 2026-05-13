@@ -6,6 +6,7 @@ import es.udc.anpaproject.backend.model.entities.Document;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.rest.dtos.DocumentConverter;
 import es.udc.anpaproject.backend.rest.dtos.DocumentDto;
@@ -59,13 +60,13 @@ public class DocumentServiceImpl implements DocumentService {
 
     @Override
     public DocumentDto uploadDocument(DocumentDto dto, Long userId, MultipartFile file)
-            throws InstanceNotFoundException, PermissionException, IOException {
+        throws InstanceNotFoundException, PermissionException, IOException, InvalidFileException {
 
         User user = getUser(userId);
         checkAdmin(user);
 
         if (file == null || file.isEmpty()) {
-            throw new IOException("El archivo no puede estar vacío");
+            throw new InvalidFileException("project.exceptions.document.emptyFile");
         }
 
         if (!Files.exists(uploadDir)) {

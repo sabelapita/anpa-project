@@ -2,6 +2,7 @@ package es.udc.anpaproject.backend.rest.controllers;
 
 import es.udc.anpaproject.backend.model.entities.Document;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.model.services.DocumentService;
@@ -57,7 +58,7 @@ public class DocumentController {
             @Valid @RequestPart("data") DocumentDto dto,
             @RequestPart("file") MultipartFile file,
             @RequestAttribute Long userId)
-            throws InstanceNotFoundException, PermissionException, IOException {
+            throws InstanceNotFoundException, PermissionException, IOException,InvalidFileException {
 
         return documentService.uploadDocument(dto, userId, file);
     }

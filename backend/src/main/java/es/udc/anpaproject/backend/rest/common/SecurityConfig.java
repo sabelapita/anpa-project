@@ -55,7 +55,8 @@ public class SecurityConfig {
 
                 // PAYMENTS
                 .requestMatchers(HttpMethod.POST, "/payments/checkout/**").hasRole("USER")
-
+                .requestMatchers(HttpMethod.POST, "/payments/webhook").permitAll()
+                
                 // BLOG
                 .requestMatchers(HttpMethod.GET, "/posts/admin").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
