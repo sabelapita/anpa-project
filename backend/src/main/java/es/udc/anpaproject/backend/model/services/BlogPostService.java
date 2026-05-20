@@ -1,3 +1,5 @@
+package es.udc.anpaproject.backend.model.services;
+
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.rest.dtos.BlogPostDto;
