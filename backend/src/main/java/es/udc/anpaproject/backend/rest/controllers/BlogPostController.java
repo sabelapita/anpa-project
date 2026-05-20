@@ -52,7 +52,16 @@ public class BlogPostController {
     public BlogPostDto getById(@PathVariable Long postId)
             throws InstanceNotFoundException {
 
-        return blogPostService.findById(postId);
+        return blogPostService.findPublishedById(postId);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/{postId}")
+    public BlogPostDto getByIdAsAdmin(@PathVariable Long postId,
+                                      @RequestAttribute Long userId)
+            throws InstanceNotFoundException, PermissionException {
+
+        return blogPostService.findById(postId, userId);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

@@ -1,13 +1,5 @@
-package es.udc.anpaproject.backend.model.services;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
-import org.springframework.stereotype.Service;
-
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
-
 import es.udc.anpaproject.backend.rest.dtos.BlogPostDto;
 
 public interface BlogPostService {
@@ -16,7 +8,10 @@ public interface BlogPostService {
 
     Block<BlogPostDto> findAll(int page, int size);
     
-    BlogPostDto findById(Long postId) throws InstanceNotFoundException;
+    BlogPostDto findPublishedById(Long postId) throws InstanceNotFoundException;
+
+    BlogPostDto findById(Long postId, Long userId)
+            throws InstanceNotFoundException, PermissionException;
 
     BlogPostDto createPost(BlogPostDto dto, Long authorId)
             throws InstanceNotFoundException, PermissionException;

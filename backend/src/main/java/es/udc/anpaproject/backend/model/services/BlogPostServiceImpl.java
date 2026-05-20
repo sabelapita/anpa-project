@@ -54,7 +54,21 @@ public class BlogPostServiceImpl implements BlogPostService {
 
     @Override
     @Transactional(readOnly = true)
-    public BlogPostDto findById(Long postId) throws InstanceNotFoundException {
+    public BlogPostDto findPublishedById(Long postId) throws InstanceNotFoundException {
+
+        BlogPost post = blogPostRepository.findByIdAndPublishedTrue(postId)
+                .orElseThrow(() -> new InstanceNotFoundException("project.entities.blogPost", postId));
+
+        return BlogPostConverter.toPostDto(post);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BlogPostDto findById(Long postId, Long userId)
+            throws InstanceNotFoundException, PermissionException {
+
+        User user = getUser(userId);
+        checkAdmin(user);
 
         BlogPost post = blogPostRepository.findById(postId)
                 .orElseThrow(() -> new InstanceNotFoundException("project.entities.blogPost", postId));

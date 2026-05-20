@@ -57,6 +57,16 @@ public class UserServiceTest {
     }
 
     @Test
+    public void testSignUpAlwaysCreatesRegularUser() throws DuplicateInstanceException {
+        UserDto userDto = new UserDto(null, "notadmin", "Name", "Last", "notadmin@udc.es", "ADMIN");
+        userDto.setPassword("password");
+
+        UserDto registeredUser = userService.signUp(userDto);
+
+        assertEquals("USER", registeredUser.getRole());
+    }
+
+    @Test
     public void testIncorrectLogin() throws DuplicateInstanceException {
         UserDto user = new UserDto(null, "wrongpass", "Name", "Last", "u2@udc.es", "USER");
         user.setPassword("correct_password");

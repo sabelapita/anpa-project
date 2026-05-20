@@ -34,10 +34,7 @@ public class UserServiceImpl implements UserService {
             
         User user = UserConverter.toUser(userDto);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-        
-        // Asignación de rol coherente
-        user.setRole(userDto.getRole() != null && userDto.getRole().equals("ADMIN") 
-                     ? RoleType.ADMIN : RoleType.USER);
+        user.setRole(RoleType.USER);
 
         return UserConverter.toUserDto(userRepository.save(user));
     }

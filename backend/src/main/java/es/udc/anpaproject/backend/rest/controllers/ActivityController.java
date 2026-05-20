@@ -8,6 +8,7 @@ import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.rest.dtos.ActivityConverter;
 import es.udc.anpaproject.backend.rest.dtos.ActivityDto;
 import es.udc.anpaproject.backend.rest.dtos.BlockDto;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,7 +25,7 @@ public class ActivityController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(consumes = { "multipart/form-data" })
     public ActivityDto createActivity(
-            @RequestPart("data") ActivityDto dto,
+            @Valid @RequestPart("data") ActivityDto dto,
             @RequestPart(value = "image", required = false) MultipartFile image,
             @RequestAttribute Long userId) throws IOException, PermissionException, InstanceNotFoundException {
 
@@ -53,7 +54,7 @@ public class ActivityController {
     @PreAuthorize("hasRole('ADMIN')")
     public ActivityDto update(
             @PathVariable Long id, 
-            @RequestBody ActivityDto dto, 
+            @Valid @RequestBody ActivityDto dto,
             @RequestAttribute Long userId) throws InstanceNotFoundException, PermissionException {
         return activityService.updateActivity(id, dto, userId);
     }
@@ -69,7 +70,7 @@ public class ActivityController {
     @PostMapping(consumes = "application/json")
     @PreAuthorize("hasRole('ADMIN')")
     public ActivityDto createActivityJson(
-            @RequestBody ActivityDto dto,
+            @Valid @RequestBody ActivityDto dto,
             @RequestAttribute Long userId)
             throws IOException, PermissionException, InstanceNotFoundException {
 

@@ -130,6 +130,54 @@ public class BlogPostServiceTest {
     }
 
     @Test
+    public void testFindPublishedByIdDoesNotReturnUnpublishedPost()
+            throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
+
+        User admin = createAdminUser("adminhidden");
+
+        BlogPostDto postDto = new BlogPostDto(
+                null,
+                "Borrador privado",
+                "Contenido no visible publicamente",
+                null,
+                null,
+                null,
+                false,
+                "BORRADORES"
+        );
+
+        BlogPostDto createdPost = blogPostService.createPost(postDto, admin.getId());
+
+        assertThrows(InstanceNotFoundException.class, () -> {
+            blogPostService.findPublishedById(createdPost.getId());
+        });
+    }
+
+    @Test
+    public void testFindByIdAsAdminReturnsUnpublishedPost()
+            throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
+
+        User admin = createAdminUser("adminfindhidden");
+
+        BlogPostDto postDto = new BlogPostDto(
+                null,
+                "Borrador visible para admin",
+                "Contenido interno",
+                null,
+                null,
+                null,
+                false,
+                "BORRADORES"
+        );
+
+        BlogPostDto createdPost = blogPostService.createPost(postDto, admin.getId());
+        BlogPostDto foundPost = blogPostService.findById(createdPost.getId(), admin.getId());
+
+        assertEquals(createdPost.getId(), foundPost.getId());
+        assertFalse(foundPost.isPublished());
+    }
+
+    @Test
     public void testUpdatePostAsAdmin() 
             throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
 
@@ -220,7 +268,7 @@ public class BlogPostServiceTest {
         blogPostService.deletePost(createdPost.getId(), admin.getId());
 
         assertThrows(InstanceNotFoundException.class, () -> {
-            blogPostService.findById(createdPost.getId());
+            blogPostService.findById(createdPost.getId(), admin.getId());
         });
     }
 }

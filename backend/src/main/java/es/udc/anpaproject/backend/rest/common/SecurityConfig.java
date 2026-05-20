@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() 
                 .requestMatchers(HttpMethod.POST, "/users/signUp").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/users/loginFromServiceToken").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users/loginFromServiceToken").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/users/*").hasRole("USER")
                 .requestMatchers(HttpMethod.POST, "/users/*/changePassword").hasRole("USER")
                
@@ -59,6 +59,7 @@ public class SecurityConfig {
                 
                 // BLOG
                 .requestMatchers(HttpMethod.GET, "/posts/admin").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/posts/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/posts/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/posts/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/posts/**").hasRole("ADMIN")
@@ -87,7 +88,6 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
         config.setAllowedOriginPatterns(List.of("http://localhost:3000")); 
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setExposedHeaders(List.of("Authorization")); // por si el front lee el token
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
