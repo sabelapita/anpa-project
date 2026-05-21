@@ -1,119 +1,128 @@
-import React, { useState, useContext } from "react";
-import axios from "api/axios";
+import React, { useContext, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { loginUser } from "../api/authApi";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./LoginPage.css";
+import { getApiErrorMessage } from "../utils/apiErrors";
+import "./AuthPages.css";
 
 const LoginPage = () => {
-  const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+  const [formData, setFormData] = useState({
+    userName: "",
+    password: "",
+    remember: false,
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useContext(AuthContext);
+  const { isAuthenticated, login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
-    if (!userName || !password) {
-      setError("Por favor, completa todos los campos.");
+  const updateField = (field, value) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+  };
+
+  const validateForm = () => {
+    if (!formData.userName.trim() || !formData.password) {
+      return "Introduce tu usuario y contraseña.";
+    }
+
+    return "";
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
+    setError("");
+    setLoading(true);
+
     try {
-      setLoading(true);
-      const response = await axios.post("/users/login", { userName, password });
-      login(response.data.serviceToken, remember);
-      navigate("/");
+      const response = await loginUser({
+        userName: formData.userName.trim(),
+        password: formData.password,
+      });
+
+      login(response.data, formData.remember);
+      navigate("/", { replace: true });
     } catch (err) {
-      setError("Usuario o contraseña incorrectos.");
+      setError(
+        getApiErrorMessage(err, "Usuario o contraseña incorrectos.")
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-bg d-flex justify-content-center align-items-center vh-100">
-      <div className="card login-card shadow-lg p-4 border-0">
-        <h3 className="text-center mb-4 fw-bold text-primary">Iniciar sesión</h3>
+    <main className="auth-page">
+      <section className="auth-card" aria-labelledby="login-title">
+        <p className="auth-kicker">ANPA Project</p>
+        <h1 id="login-title">Iniciar sesión</h1>
+        <p className="auth-subtitle">
+          Accede al área privada para gestionar actividades, mensajes y pagos.
+        </p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="userName" className="form-label">
-              Usuario
-            </label>
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="form-field">
+            <label htmlFor="userName">Usuario</label>
             <input
               id="userName"
               type="text"
-              className="form-control"
-              placeholder="Introduce tu usuario"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              autoComplete="userName"
+              value={formData.userName}
+              onChange={(event) => updateField("userName", event.target.value)}
+              autoComplete="username"
+              maxLength={60}
+              autoFocus
             />
           </div>
 
-          <div className="mb-3">
-            <label htmlFor="password" className="form-label">
-              Contraseña
-            </label>
+          <div className="form-field">
+            <label htmlFor="password">Contraseña</label>
             <input
               id="password"
               type="password"
-              className="form-control"
-              placeholder="Introduce tu contraseña"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={formData.password}
+              onChange={(event) => updateField("password", event.target.value)}
               autoComplete="current-password"
+              maxLength={60}
             />
           </div>
 
-          <div className="form-check mb-3 d-flex justify-content-between align-items-center">
-            <div>
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="remember"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-              />
-              <label className="form-check-label" htmlFor="remember">
-                Recordar sesión
-              </label>
-            </div>
-            <button
-                type="button"
-                className="btn btn-link p-0 text-primary"
-                style={{ textDecoration: "none" }}
-                >
-                ¿Olvidaste tu contraseña?
-            </button>
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary w-100"
-            disabled={loading}
-          >
-            {loading ? "Cargando..." : "Iniciar sesión"}
-          </button>
+          <label className="auth-check" htmlFor="remember">
+            <input
+              id="remember"
+              type="checkbox"
+              checked={formData.remember}
+              onChange={(event) => updateField("remember", event.target.checked)}
+            />
+            <span>Mantener la sesión iniciada</span>
+          </label>
 
           {error && (
-            <div className="alert alert-danger mt-3 text-center">{error}</div>
+            <div className="auth-alert" role="alert">
+              {error}
+            </div>
           )}
+
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? "Comprobando..." : "Entrar"}
+          </button>
         </form>
-        <p className="mt-3 text-center">
-            ¿No tienes cuenta?{" "}
-            <a href="/signup" className="text-primary text-decoration-none">
-                Regístrarse
-            </a>
+
+        <p className="auth-switch">
+          ¿No tienes cuenta? <Link to="/signup">Crear una cuenta</Link>
         </p>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

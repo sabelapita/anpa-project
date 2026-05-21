@@ -1,30 +1,38 @@
-// src/axios.js
 import axios from "axios";
 
+const AUTH_KEYS = ["token", "token_exp", "user"];
+
+const clearAuthData = () => {
+  [localStorage, sessionStorage].forEach((storage) => {
+    AUTH_KEYS.forEach((key) => storage.removeItem(key));
+  });
+};
+
 const api = axios.create({
-  baseURL: "http://localhost:8080", // Ajusta si tu backend usa otro prefijo
+  baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:8080",
 });
 
-// Interceptor: añade el token JWT automáticamente
 api.interceptors.request.use((config) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
-// Interceptor: captura expiración del token y redirige al login
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Borrar sesión y redirigir
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = "/login";
+    if (error.response?.status === 401) {
+      clearAuthData();
+
+      if (!window.location.pathname.startsWith("/login")) {
+        window.location.assign("/login");
+      }
     }
+
     return Promise.reject(error);
   }
 );

@@ -1,15 +1,9 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const HomePage = () => {
-  const { token, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!token) navigate("/login");
-  }, [token, navigate]);
+  const { user, logout } = useContext(AuthContext);
 
   return (
     <div className="container py-5">
@@ -21,8 +15,14 @@ const HomePage = () => {
           Has iniciado sesión correctamente. Desde aquí podrás acceder a las
           secciones privadas.
         </p>
+        {user && (
+          <p className="text-center text-muted mb-4">
+            Usuario: <strong>{user.userName}</strong> · Perfil:{" "}
+            <strong>{user.role}</strong>
+          </p>
+        )}
         <div className="text-center">
-          <button className="btn btn-danger px-4" onClick={logout}>
+          <button className="btn btn-danger px-4" onClick={() => logout()}>
             Cerrar sesión
           </button>
         </div>

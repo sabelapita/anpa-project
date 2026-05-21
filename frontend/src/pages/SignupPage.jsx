@@ -1,171 +1,224 @@
-import React, { useState, useContext } from "react";
-import axios from "api/axios";
-import { useNavigate } from "react-router-dom";
+import React, { useContext, useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import { signUpUser } from "../api/authApi";
 import { AuthContext } from "../context/AuthContext";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./SignupPage.css";
+import { getApiErrorMessage } from "../utils/apiErrors";
+import { hasMaxLength, isValidEmail } from "../utils/validators";
+import "./AuthPages.css";
+
+const initialFormData = {
+  userName: "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  remember: false,
+};
 
 const SignupPage = () => {
-  const [userName, setUserName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formData, setFormData] = useState(initialFormData);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const { isAuthenticated, login } = useContext(AuthContext);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  const updateField = (field, value) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      formData.userName,
+      formData.firstName,
+      formData.lastName,
+      formData.email,
+      formData.password,
+      formData.confirmPassword,
+    ];
+
+    if (requiredFields.some((value) => !value.trim())) {
+      return "Completa todos los campos para crear la cuenta.";
+    }
+
+    if (!isValidEmail(formData.email.trim())) {
+      return "Introduce un correo electrónico válido.";
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      return "Las contraseñas no coinciden.";
+    }
+
+    if (
+      !hasMaxLength(formData.userName, 60) ||
+      !hasMaxLength(formData.firstName, 60) ||
+      !hasMaxLength(formData.lastName, 60) ||
+      !hasMaxLength(formData.email, 60) ||
+      formData.password.length > 60
+    ) {
+      return "Los campos no pueden superar los 60 caracteres.";
+    }
+
+    return "";
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setError("");
-
-    if (!userName || !firstName || !lastName || !email || !password || !confirmPassword) {
-      setError("Por favor, completa todos los campos.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Las contraseñas no coinciden.");
-      return;
-    }
+    setLoading(true);
 
     try {
-    setLoading(true);
-    const response = await axios.post("/users/signUp", {
-        userName: userName,
-        firstName: firstName,
-        lastName: lastName,
-        password: password,
-        email: email,
-        role: "USER"
-    });
+      const response = await signUpUser({
+        userName: formData.userName.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
-    console.log("Respuesta del backend:", response.data);
-
-    const token = response.data.serviceToken;
-    if (token) {
-        login(token, true); // login automático
-        navigate("/"); // redirige al HomePage
-    } else {
-        setError("Registro completado, pero sin token.");
-    }
-
+      login(response.data, formData.remember);
+      navigate("/", { replace: true });
     } catch (err) {
-    if (err.response) {
-        // Errores controlados por backend
-        const msg = err.response.data.message || err.response.data.errors?.[0];
+      const message = getApiErrorMessage(
+        err,
+        "No se pudo crear la cuenta. Revisa los datos e inténtalo de nuevo."
+      );
 
-        if (msg?.includes("DuplicateInstanceException")) {
-        setError("Ese nombre de usuario ya existe.");
-        } else if (msg?.includes("IncorrectPasswordException")) {
-        setError("La contraseña no cumple los requisitos.");
-        } else {
-        setError("Error al registrar usuario. Inténtalo de nuevo.");
-        }
-    } else {
-        // Errores de red o inesperados
-        setError("No se pudo conectar con el servidor.");
-    }
+      setError(
+        message.includes("Ya existe")
+          ? "Ya existe una cuenta con ese nombre de usuario."
+          : message
+      );
     } finally {
-    setLoading(false);
+      setLoading(false);
     }
-
   };
 
   return (
-    <div className="signup-bg d-flex justify-content-center align-items-center vh-100">
-      <div className="card signup-card shadow-lg p-4 border-0">
-        <h3 className="text-center mb-4 fw-bold text-primary">Crear cuenta</h3>
+    <main className="auth-page">
+      <section className="auth-card auth-card-wide" aria-labelledby="signup-title">
+        <p className="auth-kicker">ANPA Project</p>
+        <h1 id="signup-title">Crear cuenta</h1>
+        <p className="auth-subtitle">
+          Regístrate para inscribirte en actividades y consultar tus gestiones.
+        </p>
 
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label className="form-label">Usuario</label>
-            <input
-              type="text"
-              className="form-control"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
-              placeholder="Introduce tu usuario"
-            />
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="auth-grid">
+            <div className="form-field">
+              <label htmlFor="signup-userName">Usuario</label>
+              <input
+                id="signup-userName"
+                type="text"
+                value={formData.userName}
+                onChange={(event) => updateField("userName", event.target.value)}
+                autoComplete="username"
+                maxLength={60}
+                autoFocus
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="signup-email">Correo electrónico</label>
+              <input
+                id="signup-email"
+                type="email"
+                value={formData.email}
+                onChange={(event) => updateField("email", event.target.value)}
+                autoComplete="email"
+                maxLength={60}
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="firstName">Nombre</label>
+              <input
+                id="firstName"
+                type="text"
+                value={formData.firstName}
+                onChange={(event) => updateField("firstName", event.target.value)}
+                autoComplete="given-name"
+                maxLength={60}
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="lastName">Apellidos</label>
+              <input
+                id="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={(event) => updateField("lastName", event.target.value)}
+                autoComplete="family-name"
+                maxLength={60}
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="signup-password">Contraseña</label>
+              <input
+                id="signup-password"
+                type="password"
+                value={formData.password}
+                onChange={(event) => updateField("password", event.target.value)}
+                autoComplete="new-password"
+                maxLength={60}
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="confirmPassword">Confirmar contraseña</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={(event) =>
+                  updateField("confirmPassword", event.target.value)
+                }
+                autoComplete="new-password"
+                maxLength={60}
+              />
+            </div>
           </div>
 
-            <div className="mb-3">
-            <label className="form-label">Nombre</label>
+          <label className="auth-check" htmlFor="signup-remember">
             <input
-              type="text"
-              className="form-control"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Introduce tu nombre"
+              id="signup-remember"
+              type="checkbox"
+              checked={formData.remember}
+              onChange={(event) => updateField("remember", event.target.checked)}
             />
-          </div>
+            <span>Mantener la sesión iniciada</span>
+          </label>
 
-          <div className="mb-3">
-            <label className="form-label">Apellidos</label>
-            <input
-              type="text"
-              className="form-control"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              placeholder="Introduce tus apellidos"
-            />
-          </div>
+          {error && (
+            <div className="auth-alert" role="alert">
+              {error}
+            </div>
+          )}
 
-          <div className="mb-3">
-            <label className="form-label">Correo electrónico</label>
-            <input
-              type="email"
-              className="form-control"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Introduce tu email"
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Contraseña</label>
-            <input
-              type="password"
-              className="form-control"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Introduce tu contraseña"
-            />
-          </div>
-
-          <div className="mb-3">
-            <label className="form-label">Confirmar contraseña</label>
-            <input
-              type="password"
-              className="form-control"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Repite la contraseña"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="btn btn-primary w-100"
-            disabled={loading}
-          >
-            {loading ? "Registrando..." : "Registrarse"}
+          <button className="auth-submit" type="submit" disabled={loading}>
+            {loading ? "Creando cuenta..." : "Registrarse"}
           </button>
-
-          {error && <div className="alert alert-danger mt-3 text-center">{error}</div>}
         </form>
 
-        <p className="mt-3 text-center">
-          ¿Ya tienes cuenta?{" "}
-          <a href="/login" className="text-primary text-decoration-none">
-            Inicia sesión aquí
-          </a>
+        <p className="auth-switch">
+          ¿Ya tienes cuenta? <Link to="/login">Iniciar sesión</Link>
         </p>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 
