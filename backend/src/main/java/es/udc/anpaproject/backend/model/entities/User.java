@@ -38,6 +38,10 @@ public class User {
     @Column(nullable = false)
 	private RoleType role;
 
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, length = 30)
+	private MembershipStatus membershipStatus;
+
 	public User() {}
 
 	public User(String userName, String password, String firstName, String lastName, String email) {
@@ -48,6 +52,7 @@ public class User {
 		this.lastName = lastName;
 		this.email = email;
 	    this.role = RoleType.USER;
+		this.membershipStatus = MembershipStatus.NON_MEMBER;
 		
 	}
 
@@ -106,6 +111,14 @@ public class User {
 
 	public void setRole(RoleType role) {
 		this.role = role;
+	}
+
+	public MembershipStatus getMembershipStatus() {
+		return membershipStatus;
+	}
+
+	public void setMembershipStatus(MembershipStatus membershipStatus) {
+		this.membershipStatus = membershipStatus;
 	}
 
 }

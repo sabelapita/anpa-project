@@ -14,6 +14,7 @@ CREATE TABLE User (
     lastName VARCHAR(60) NOT NULL, 
     email VARCHAR(60) NOT NULL,
     role TINYINT NOT NULL,
+    membershipStatus VARCHAR(30) NOT NULL DEFAULT 'NON_MEMBER',
     CONSTRAINT UserPK PRIMARY KEY (id),
     CONSTRAINT UserNameUniqueKey UNIQUE (userName)
 ) ENGINE = InnoDB;

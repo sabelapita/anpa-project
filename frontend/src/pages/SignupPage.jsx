@@ -25,7 +25,7 @@ const SignupPage = () => {
   const navigate = useNavigate();
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const updateField = (field, value) => {
@@ -89,7 +89,7 @@ const SignupPage = () => {
       });
 
       login(response.data, formData.remember);
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       const message = getApiErrorMessage(
         err,

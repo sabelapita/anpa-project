@@ -18,7 +18,7 @@ const LoginPage = () => {
   const navigate = useNavigate();
 
   if (isAuthenticated) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const updateField = (field, value) => {
@@ -52,7 +52,7 @@ const LoginPage = () => {
       });
 
       login(response.data, formData.remember);
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     } catch (err) {
       setError(
         getApiErrorMessage(err, "Usuario o contraseña incorrectos.")

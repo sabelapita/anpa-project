@@ -17,10 +17,16 @@ public class UserDto {
 	private String lastName;
 	private String email;
 	private String role;
+	private String membershipStatus;
 
 	public UserDto() {}
 
 	public UserDto(Long id, String userName, String firstName, String lastName, String email, String role) {
+		this(id, userName, firstName, lastName, email, role, null);
+	}
+
+	public UserDto(Long id, String userName, String firstName, String lastName, String email,
+				   String role, String membershipStatus) {
 
 		this.id = id;
 		this.userName = userName != null ? userName.trim() : null;
@@ -28,6 +34,7 @@ public class UserDto {
 		this.lastName = lastName.trim();
 		this.email = email.trim();
 		this.role = role;
+		this.membershipStatus = membershipStatus;
 		
 	}
 
@@ -96,6 +103,14 @@ public class UserDto {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getMembershipStatus() {
+		return membershipStatus;
+	}
+
+	public void setMembershipStatus(String membershipStatus) {
+		this.membershipStatus = membershipStatus;
 	}
 
 }

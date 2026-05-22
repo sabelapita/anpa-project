@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/loginFromServiceToken").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/users/*").hasRole("USER")
+                .requestMatchers(HttpMethod.PATCH, "/users/*/membership").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/users/*/changePassword").hasRole("USER")
                
 				// Activities

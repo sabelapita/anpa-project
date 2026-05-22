@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
+import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
@@ -33,6 +34,7 @@ public class PermissionCheckerTest {
         user.setLastName("Pita");
         user.setEmail("sabela@test.com");
         user.setRole(RoleType.USER);
+        user.setMembershipStatus(MembershipStatus.NON_MEMBER);
 
         User savedUser = userRepository.save(user);
 

@@ -7,8 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import es.udc.anpaproject.backend.model.daos.UserRepository;
+import es.udc.anpaproject.backend.model.entities.MembershipStatus;
+import es.udc.anpaproject.backend.model.entities.RoleType;
+import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.IncorrectLoginException;
+import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.rest.dtos.AuthenticatedUserDto;
 import es.udc.anpaproject.backend.rest.dtos.LoginParamsDto;
 import es.udc.anpaproject.backend.rest.dtos.UserDto;
@@ -21,6 +27,9 @@ public class UserServiceTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     public void testSignUpAndLogin() throws DuplicateInstanceException, IncorrectLoginException {
         
@@ -32,6 +41,7 @@ public class UserServiceTest {
         UserDto registeredUser = userService.signUp(userDto);
         assertNotNull(registeredUser.getId());
         assertEquals("testuser", registeredUser.getUserName());
+        assertEquals("NON_MEMBER", registeredUser.getMembershipStatus());
 
         // 3. Probar login exitoso
         LoginParamsDto loginParams = new LoginParamsDto();
@@ -64,6 +74,44 @@ public class UserServiceTest {
         UserDto registeredUser = userService.signUp(userDto);
 
         assertEquals("USER", registeredUser.getRole());
+    }
+
+    @Test
+    public void testAdminCanUpdateMembershipStatus()
+            throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
+
+        UserDto adminDto = new UserDto(null, "membershipadmin", "Admin", "User", "admin@udc.es", "USER");
+        adminDto.setPassword("password");
+        UserDto registeredAdmin = userService.signUp(adminDto);
+
+        User admin = userRepository.findById(registeredAdmin.getId()).get();
+        admin.setRole(RoleType.ADMIN);
+
+        UserDto userDto = new UserDto(null, "membershipuser", "Normal", "User", "normal@udc.es", "USER");
+        userDto.setPassword("password");
+        UserDto registeredUser = userService.signUp(userDto);
+
+        UserDto updatedUser = userService.updateMembershipStatus(
+            admin.getId(),
+            registeredUser.getId(),
+            MembershipStatus.MEMBER
+        );
+
+        assertEquals("MEMBER", updatedUser.getMembershipStatus());
+    }
+
+    @Test
+    public void testRegularUserCannotUpdateMembershipStatus() throws DuplicateInstanceException {
+        UserDto managerDto = new UserDto(null, "regularmanager", "Regular", "Manager", "manager@udc.es", "USER");
+        managerDto.setPassword("password");
+        UserDto manager = userService.signUp(managerDto);
+
+        UserDto userDto = new UserDto(null, "regularmember", "Normal", "User", "member@udc.es", "USER");
+        userDto.setPassword("password");
+        UserDto user = userService.signUp(userDto);
+
+        assertThrows(PermissionException.class, () ->
+            userService.updateMembershipStatus(manager.getId(), user.getId(), MembershipStatus.MEMBER));
     }
 
     @Test

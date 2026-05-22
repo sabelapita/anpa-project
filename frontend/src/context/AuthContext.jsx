@@ -150,6 +150,7 @@ export const AuthProvider = ({ children }) => {
       user,
       isAuthenticated: Boolean(token),
       isAdmin: user?.role === "ADMIN",
+      isMember: user?.membershipStatus === "MEMBER",
       loadingSession,
       login,
       logout,

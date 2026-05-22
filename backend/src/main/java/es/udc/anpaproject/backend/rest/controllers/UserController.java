@@ -9,10 +9,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.exceptions.*;
 import es.udc.anpaproject.backend.model.services.UserService;
 import es.udc.anpaproject.backend.rest.common.ErrorsDto;
@@ -95,6 +97,15 @@ public class UserController {
         }
         
         return userService.updateProfile(id, userDto);
+    }
+
+    @PatchMapping("/{id}/membership")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserDto updateMembershipStatus(@RequestAttribute Long userId, @PathVariable Long id,
+        @RequestParam MembershipStatus value)
+        throws InstanceNotFoundException, PermissionException {
+
+        return userService.updateMembershipStatus(userId, id, value);
     }
     
     @PostMapping("/{id}/changePassword")

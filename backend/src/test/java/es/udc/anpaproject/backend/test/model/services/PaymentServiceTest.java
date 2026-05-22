@@ -46,6 +46,7 @@ public class PaymentServiceTest {
         user.setLastName("User");
         user.setEmail(username + "@test.com");
         user.setRole(RoleType.USER);
+        user.setMembershipStatus(MembershipStatus.NON_MEMBER);
 
         return userRepository.save(user);
     }

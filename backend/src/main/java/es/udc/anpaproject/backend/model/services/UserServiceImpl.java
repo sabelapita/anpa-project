@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
+import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.entities.RoleType; // Importamos el enum externo
 import es.udc.anpaproject.backend.model.exceptions.*;
@@ -35,6 +36,7 @@ public class UserServiceImpl implements UserService {
         User user = UserConverter.toUser(userDto);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setRole(RoleType.USER);
+        user.setMembershipStatus(MembershipStatus.NON_MEMBER);
 
         return UserConverter.toUserDto(userRepository.save(user));
     }
@@ -74,6 +76,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto updateMembershipStatus(Long adminId, Long userId, MembershipStatus membershipStatus)
+        throws InstanceNotFoundException, PermissionException {
+
+        User admin = getUser(adminId);
+        checkAdmin(admin);
+
+        User user = getUser(userId);
+        user.setMembershipStatus(membershipStatus);
+
+        return UserConverter.toUserDto(userRepository.save(user));
+    }
+
+    @Override
     public void changePassword(Long id, ChangePasswordParamsDto params)
         throws InstanceNotFoundException, IncorrectPasswordException {
         
@@ -88,6 +103,17 @@ public class UserServiceImpl implements UserService {
     }
 
     // Método privado para no repetir código de creación de Token
+    private User getUser(Long userId) throws InstanceNotFoundException {
+        return userRepository.findById(userId)
+            .orElseThrow(() -> new InstanceNotFoundException("project.entities.user", userId));
+    }
+
+    private void checkAdmin(User user) throws PermissionException {
+        if (user.getRole() != RoleType.ADMIN) {
+            throw new PermissionException();
+        }
+    }
+
     private AuthenticatedUserDto generateAuthenticatedUserDto(User user) {
         String token = jwtGenerator.generate(new JwtInfo(user.getId(), user.getRole().toString()));
         return UserConverter.toAuthenticatedUserDto(token, user);
