@@ -14,6 +14,7 @@ import java.util.Optional;
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
     List<Enrollment> findByUser(User user);
     boolean existsByUserAndActivity(User user, Activity activity);
+    boolean existsByActivityAndPaidTrue(Activity activity);
     List<Enrollment> findByActivity(Activity activity);
     Optional<Enrollment> findByUserIdAndActivityId(Long userId, Long activityId);
     @Transactional

@@ -13,4 +13,9 @@ import java.util.List;
 public interface ActivityRepository extends JpaRepository<Activity, Long>{
     Slice<Activity> findByOrderByTitleAsc(Pageable pageable);
     Slice<Activity> findByVisibilityInOrderByTitleAsc(List<ActivityVisibility> visibilities, Pageable pageable);
+    Slice<Activity> findByTitleContainingIgnoreCaseAndVisibilityInOrderByTitleAsc(
+            String keywords,
+            List<ActivityVisibility> visibilities,
+            Pageable pageable
+    );
 }

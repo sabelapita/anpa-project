@@ -19,6 +19,7 @@ import es.udc.anpaproject.backend.rest.dtos.AuthenticatedUserDto;
 import es.udc.anpaproject.backend.rest.dtos.LoginParamsDto;
 import es.udc.anpaproject.backend.rest.dtos.UserDto;
 import es.udc.anpaproject.backend.model.services.*;
+import jakarta.persistence.EntityManager;
 
 @SpringBootTest
 @Transactional // Esto hace que el test no ensucie la base de datos (hace rollback al terminar)
@@ -29,6 +30,9 @@ public class UserServiceTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     public void testSignUpAndLogin() throws DuplicateInstanceException, IncorrectLoginException {
@@ -100,6 +104,28 @@ public class UserServiceTest {
         );
 
         assertEquals("MEMBER", updatedUser.getMembershipStatus());
+    }
+
+    @Test
+    public void testAdminLoadedFromDatabaseIsAlwaysMember()
+            throws DuplicateInstanceException, InstanceNotFoundException {
+
+        UserDto adminDto = new UserDto(null, "manualadmin", "Manual", "Admin", "manual@udc.es", "USER");
+        adminDto.setPassword("password");
+        UserDto registeredAdmin = userService.signUp(adminDto);
+
+        entityManager.createNativeQuery(
+                "UPDATE User SET role = 1, membershipStatus = 'NON_MEMBER' WHERE id = :id"
+        )
+                .setParameter("id", registeredAdmin.getId())
+                .executeUpdate();
+        entityManager.flush();
+        entityManager.clear();
+
+        AuthenticatedUserDto authenticatedUser = userService.loginFromId(registeredAdmin.getId());
+
+        assertEquals("ADMIN", authenticatedUser.getUserDto().getRole());
+        assertEquals("MEMBER", authenticatedUser.getUserDto().getMembershipStatus());
     }
 
     @Test

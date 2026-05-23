@@ -1,12 +1,14 @@
 package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.daos.ActivityRepository;
+import es.udc.anpaproject.backend.model.daos.EnrollmentRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.model.entities.Activity;
 import es.udc.anpaproject.backend.model.entities.ActivityVisibility;
 import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
+import es.udc.anpaproject.backend.model.exceptions.ActivityDeletionException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.rest.dtos.ActivityConverter;
@@ -36,6 +38,9 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
     private final Path uploadDir = Paths.get("uploads");
 
@@ -87,14 +92,26 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     @Transactional(readOnly = true)
-    public Block<Activity> findVisibleActivities(Long userId, int page, int size)
+    public Block<Activity> findVisibleActivities(Long userId, String keywords, int page, int size)
             throws InstanceNotFoundException {
 
         User user = userId != null ? getUser(userId) : null;
-        Slice<Activity> slice = activityRepository.findByVisibilityInOrderByTitleAsc(
-                getAllowedVisibilities(user),
-                PageRequest.of(page, size)
-        );
+        List<ActivityVisibility> visibilities = getAllowedVisibilities(user);
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Slice<Activity> slice;
+
+        if (keywords == null || keywords.trim().isEmpty()) {
+            slice = activityRepository.findByVisibilityInOrderByTitleAsc(
+                    visibilities,
+                    pageRequest
+            );
+        } else {
+            slice = activityRepository.findByTitleContainingIgnoreCaseAndVisibilityInOrderByTitleAsc(
+                    keywords.trim(),
+                    visibilities,
+                    pageRequest
+            );
+        }
 
         return new Block<>(
                 slice.getContent(),
@@ -147,12 +164,16 @@ public class ActivityServiceImpl implements ActivityService {
 
     @Override
     public void deleteActivity(Long id, Long userId)
-            throws InstanceNotFoundException, PermissionException {
+            throws InstanceNotFoundException, PermissionException, ActivityDeletionException {
 
         User user = getUser(userId);
         checkAdmin(user);
 
         Activity activity = getActivity(id);
+
+        if (enrollmentRepository.existsByActivityAndPaidTrue(activity)) {
+            throw new ActivityDeletionException("project.exceptions.activity.cannotDeleteWithPaidEnrollments");
+        }
 
         activityRepository.delete(activity);
     }

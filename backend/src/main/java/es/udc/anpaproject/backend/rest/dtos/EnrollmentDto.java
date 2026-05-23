@@ -8,6 +8,8 @@ public class EnrollmentDto {
 
     private Long id;
     private Long userId;
+    private String userName;
+    private String userFullName;
     private Long activityId;
     private boolean paid;
     private LocalDate paymentDate;
@@ -19,8 +21,16 @@ public class EnrollmentDto {
     public EnrollmentDto(Long id, Long userId, Long activityId, boolean paid,
                          LocalDate paymentDate, PaymentStatus paymentStatus,
                          Integer amountCents) {
+        this(id, userId, null, null, activityId, paid, paymentDate, paymentStatus, amountCents);
+    }
+
+    public EnrollmentDto(Long id, Long userId, String userName, String userFullName, Long activityId,
+                         boolean paid, LocalDate paymentDate, PaymentStatus paymentStatus,
+                         Integer amountCents) {
         this.id = id;
         this.userId = userId;
+        this.userName = userName;
+        this.userFullName = userFullName;
         this.activityId = activityId;
         this.paid = paid;
         this.paymentDate = paymentDate;
@@ -42,6 +52,22 @@ public class EnrollmentDto {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public void setUserFullName(String userFullName) {
+        this.userFullName = userFullName;
     }
 
     public Long getActivityId() {

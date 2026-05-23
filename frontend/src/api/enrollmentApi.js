@@ -4,5 +4,8 @@ export const enrollInActivity = (activityId) => api.post(`/enrollments/${activit
 
 export const findMyEnrollments = () => api.get("/enrollments/my");
 
+export const findActivityEnrollments = (activityId) =>
+  api.get(`/enrollments/activity/${activityId}`);
+
 export const unsubscribeFromActivity = (activityId) =>
   api.delete(`/enrollments/${activityId}`);

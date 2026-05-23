@@ -7,6 +7,9 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -111,23 +114,29 @@ public class User {
 
 	public void setRole(RoleType role) {
 		this.role = role;
-
-		if (role == RoleType.ADMIN) {
-			this.membershipStatus = MembershipStatus.MEMBER;
-		}
+		enforceAdminMembership();
 	}
 
 	public MembershipStatus getMembershipStatus() {
+		if (role == RoleType.ADMIN) {
+			return MembershipStatus.MEMBER;
+		}
+
 		return membershipStatus;
 	}
 
 	public void setMembershipStatus(MembershipStatus membershipStatus) {
+		this.membershipStatus = membershipStatus;
+		enforceAdminMembership();
+	}
+
+	@PostLoad
+	@PrePersist
+	@PreUpdate
+	private void enforceAdminMembership() {
 		if (role == RoleType.ADMIN) {
 			this.membershipStatus = MembershipStatus.MEMBER;
-			return;
 		}
-
-		this.membershipStatus = membershipStatus;
 	}
 
 }

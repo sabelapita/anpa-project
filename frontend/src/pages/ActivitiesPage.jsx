@@ -18,6 +18,18 @@ const typeLabels = {
   EVENT: "Evento",
 };
 
+const getEnrollmentStatusLabel = (activity, enrollment) => {
+  if (!enrollment) {
+    return "";
+  }
+
+  if (!activity.price || activity.price <= 0 || enrollment.paid) {
+    return "Inscrito y pagado";
+  }
+
+  return "Inscrito, pago pendiente";
+};
+
 const formatPrice = (price) => {
   if (!price || price <= 0) {
     return "Gratuita";
@@ -48,6 +60,7 @@ const ActivitiesPage = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [enrollingId, setEnrollingId] = useState(null);
+  const [keywords, setKeywords] = useState("");
 
   const enrolledByActivity = useMemo(
     () =>
@@ -59,13 +72,13 @@ const ActivitiesPage = () => {
   );
 
   const loadActivities = useCallback(
-    async (nextPage = 0) => {
+    async (nextPage = 0, searchKeywords = keywords) => {
       setLoading(true);
       setError("");
 
       try {
         const [activitiesResponse, enrollmentsResponse] = await Promise.all([
-          findActivities({ page: nextPage, size: 9 }),
+          findActivities({ page: nextPage, size: 9, keywords: searchKeywords }),
           isAuthenticated && !isAdmin ? findMyEnrollments() : Promise.resolve({ data: [] }),
         ]);
 
@@ -79,7 +92,7 @@ const ActivitiesPage = () => {
         setLoading(false);
       }
     },
-    [isAdmin, isAuthenticated]
+    [isAdmin, isAuthenticated, keywords]
   );
 
   useEffect(() => {
@@ -121,6 +134,11 @@ const ActivitiesPage = () => {
     }
   };
 
+  const handleSearch = (event) => {
+    event.preventDefault();
+    loadActivities(0);
+  };
+
   return (
     <main className="activities-page">
       <header className="activities-header">
@@ -147,6 +165,32 @@ const ActivitiesPage = () => {
 
       {message && <div className="activities-alert success">{message}</div>}
       {error && <div className="activities-alert error">{error}</div>}
+
+      <form className="activities-search" onSubmit={handleSearch}>
+        <label htmlFor="activity-search">Buscar por nombre</label>
+        <div>
+          <input
+            id="activity-search"
+            type="search"
+            value={keywords}
+            onChange={(event) => setKeywords(event.target.value)}
+            placeholder="Nombre de la actividad"
+            maxLength={100}
+          />
+          <button type="submit">Buscar</button>
+          {keywords && (
+            <button
+              type="button"
+              onClick={() => {
+                setKeywords("");
+                loadActivities(0, "");
+              }}
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
+      </form>
 
       {loading ? (
         <p className="activities-state">Cargando actividades...</p>
@@ -196,13 +240,15 @@ const ActivitiesPage = () => {
                       {enrollingId === activity.id ? "Inscribiendo..." : "Inscribirme"}
                     </button>
                   )}
+                  {enrollment && (
+                    <span className={enrollment.paid ? "activity-paid" : "activity-pending"}>
+                      {getEnrollmentStatusLabel(activity, enrollment)}
+                    </span>
+                  )}
                   {enrollment && activity.price > 0 && !enrollment.paid && (
                     <button type="button" onClick={() => handlePayment(enrollment.id)}>
                       Pagar
                     </button>
-                  )}
-                  {enrollment && (activity.price <= 0 || enrollment.paid) && (
-                    <span className="activity-enrolled">Inscrito</span>
                   )}
                 </div>
               </article>

@@ -6,12 +6,16 @@ import java.io.IOException;
 import java.time.LocalDate;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
+import es.udc.anpaproject.backend.model.daos.ActivityRepository;
+import es.udc.anpaproject.backend.model.daos.EnrollmentRepository;
 import es.udc.anpaproject.backend.model.entities.Activity;
 import es.udc.anpaproject.backend.model.entities.ActivityType;
 import es.udc.anpaproject.backend.model.entities.ActivityVisibility;
+import es.udc.anpaproject.backend.model.entities.Enrollment;
 import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
+import es.udc.anpaproject.backend.model.exceptions.ActivityDeletionException;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
@@ -39,6 +43,12 @@ public class ActivityServiceTest {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ActivityRepository activityRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
 
     private UserDto createUser(String userName) throws DuplicateInstanceException {
         UserDto userDto = new UserDto(
@@ -212,12 +222,39 @@ public class ActivityServiceTest {
         ActivityDto savedPublic = activityService.createActivity(publicActivity, admin.getId(), null);
         ActivityDto savedRegistered = activityService.createActivity(registeredActivity, admin.getId(), null);
 
-        Block<Activity> activities = activityService.findVisibleActivities(null, 0, 10);
+        Block<Activity> activities = activityService.findVisibleActivities(null, null, 0, 10);
 
         assertTrue(activities.getItems().stream()
                 .anyMatch(activity -> activity.getId().equals(savedPublic.getId())));
         assertFalse(activities.getItems().stream()
                 .anyMatch(activity -> activity.getId().equals(savedRegistered.getId())));
+    }
+
+    @Test
+    public void testFindVisibleActivitiesByTitle()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
+
+        UserDto admin = createAdmin("adminSearchActivities");
+
+        ActivityDto savedActivity = activityService.createActivity(
+                createActivityDto("Robotica educativa", ActivityType.ACTIVITY),
+                admin.getId(),
+                null
+        );
+
+        activityService.createActivity(
+                createActivityDto("Baloncesto", ActivityType.ACTIVITY),
+                admin.getId(),
+                null
+        );
+
+        Block<Activity> activities = activityService.findVisibleActivities(null, "robotica", 0, 10);
+
+        assertTrue(activities.getItems().stream()
+                .anyMatch(activity -> activity.getId().equals(savedActivity.getId())));
+        assertFalse(activities.getItems().stream()
+                .anyMatch(activity -> activity.getTitle().equals("Baloncesto")));
     }
 
     @Test
@@ -322,7 +359,7 @@ public class ActivityServiceTest {
     @Test
     public void testDeleteActivityAsAdmin()
             throws DuplicateInstanceException, InstanceNotFoundException,
-            PermissionException, IOException {
+            PermissionException, ActivityDeletionException, IOException {
 
         UserDto admin = createAdmin("adminDeleteActivity");
 
@@ -355,6 +392,31 @@ public class ActivityServiceTest {
 
         assertThrows(PermissionException.class, () -> {
             activityService.deleteActivity(savedActivity.getId(), user.getId());
+        });
+    }
+
+    @Test
+    public void testDeleteActivityWithPaidEnrollmentsThrowsActivityDeletionException()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, ActivityDeletionException, IOException {
+
+        UserDto admin = createAdmin("adminDeletePaidActivity");
+        UserDto userDto = createUser("paidActivityUser");
+
+        ActivityDto savedActivity = activityService.createActivity(
+                createActivityDto("Actividad pagada protegida", ActivityType.ACTIVITY),
+                admin.getId(),
+                null
+        );
+
+        User user = userRepository.findById(userDto.getId()).get();
+        Activity activity = activityRepository.findById(savedActivity.getId()).get();
+        Enrollment enrollment = new Enrollment(user, activity);
+        enrollment.setPaid(true);
+        enrollmentRepository.save(enrollment);
+
+        assertThrows(ActivityDeletionException.class, () -> {
+            activityService.deleteActivity(savedActivity.getId(), admin.getId());
         });
     }
 

@@ -1,7 +1,7 @@
 import api from "./axios";
 
-export const findActivities = ({ page = 0, size = 10 } = {}) =>
-  api.get("/activities", { params: { page, size } });
+export const findActivities = ({ page = 0, size = 10, keywords = "" } = {}) =>
+  api.get("/activities", { params: { page, size, keywords: keywords || undefined } });
 
 export const findActivityById = (activityId) => api.get(`/activities/${activityId}`);
 

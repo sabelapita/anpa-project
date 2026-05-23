@@ -151,6 +151,8 @@ public class EnrollmentServiceTest {
 
         assertNotNull(enrollment.getId());
         assertEquals(user.getId(), enrollment.getUserId());
+        assertEquals("enrollUser", enrollment.getUserName());
+        assertEquals("Test User", enrollment.getUserFullName());
         assertEquals(activity.getId(), enrollment.getActivityId());
         assertFalse(enrollment.isPaid());
         assertNull(enrollment.getPaymentDate());

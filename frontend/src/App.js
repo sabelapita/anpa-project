@@ -50,6 +50,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/activities/:id/edit"
+            element={
+              <ProtectedRoute>
+                <ActivityFormPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </AuthProvider>
     </Router>

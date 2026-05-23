@@ -11,6 +11,8 @@ public class EnrollmentConverter {
         return new EnrollmentDto(
                 e.getId(),
                 e.getUser().getId(),
+                e.getUser().getUserName(),
+                e.getUser().getFirstName() + " " + e.getUser().getLastName(),
                 e.getActivity().getId(),
                 e.isPaid(),
                 e.getPaymentDate(),

@@ -110,6 +110,47 @@
   background: #fbe9e9;
 }
 
+.activities-search {
+  max-width: 1120px;
+  margin: 0 auto 22px;
+  padding: 18px;
+  border: 1px solid #dce4df;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.activities-search label {
+  display: block;
+  margin-bottom: 8px;
+  color: #34443f;
+  font-weight: 800;
+}
+
+.activities-search div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.activities-search input {
+  flex: 1;
+  min-width: min(260px, 100%);
+  padding: 10px 12px;
+  border: 1px solid #cbd8d2;
+  border-radius: 6px;
+  font: inherit;
+}
+
+.activities-search button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #0b5f6e;
+  border-radius: 6px;
+  color: #0b5f6e;
+  background: #ffffff;
+  font-weight: 700;
+}
+
 .activities-state {
   max-width: 1120px;
   margin: 0 auto;
@@ -146,7 +187,9 @@
 }
 
 .activity-card-header span,
-.activity-enrolled {
+.activity-enrolled,
+.activity-paid,
+.activity-pending {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -156,6 +199,16 @@
   background: #e6f0ee;
   font-size: 0.82rem;
   font-weight: 800;
+}
+
+.activity-paid {
+  color: #125236;
+  background: #e7f5ee;
+}
+
+.activity-pending {
+  color: #8a5a10;
+  background: #fff3d8;
 }
 
 .activity-card h2 {
@@ -254,6 +307,44 @@
 
 .activity-detail-actions {
   margin-top: 22px;
+}
+
+.activity-enrollments-panel {
+  margin-top: 22px;
+}
+
+.activity-enrollments-panel h2 {
+  margin: 0 0 18px;
+  color: #173832;
+  font-size: 1.45rem;
+}
+
+.activity-empty {
+  margin: 0;
+  color: #5c6a66;
+}
+
+.activity-enrollments-table {
+  overflow-x: auto;
+}
+
+.activity-enrollments-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.activity-enrollments-table th,
+.activity-enrollments-table td {
+  padding: 12px;
+  border-bottom: 1px solid #dce4df;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.activity-enrollments-table th {
+  color: #6c7773;
+  font-size: 0.78rem;
+  text-transform: uppercase;
 }
 
 .activity-form-panel form {

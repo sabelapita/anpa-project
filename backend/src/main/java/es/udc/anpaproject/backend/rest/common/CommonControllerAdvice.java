@@ -140,6 +140,14 @@ public class CommonControllerAdvice {
         return new ErrorsDto(getMessage(exception.getMessageKey(), locale));
     }
 
+    @ExceptionHandler(ActivityDeletionException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseBody
+    public ErrorsDto handleActivityDeletionException(ActivityDeletionException exception, Locale locale) {
+
+        return new ErrorsDto(getMessage(exception.getMessageKey(), locale));
+    }
+
     private String getMessage(String messageKey, Locale locale) {
         return messageSource.getMessage(
                 messageKey,

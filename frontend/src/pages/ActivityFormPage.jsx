@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
-import { createActivity } from "../api/activityApi";
+import React, { useContext, useEffect, useState } from "react";
+import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { createActivity, findActivityById, updateActivity } from "../api/activityApi";
 import { AuthContext } from "../context/AuthContext";
 import { getApiErrorMessage } from "../utils/apiErrors";
 import "./ActivitiesPage.css";
@@ -17,10 +17,38 @@ const initialFormData = {
 
 const ActivityFormPage = () => {
   const { isAdmin } = useContext(AuthContext);
+  const { id } = useParams();
   const [formData, setFormData] = useState(initialFormData);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingActivity, setLoadingActivity] = useState(Boolean(id));
   const navigate = useNavigate();
+  const editing = Boolean(id);
+
+  useEffect(() => {
+    if (!id || !isAdmin) {
+      return;
+    }
+
+    setLoadingActivity(true);
+    findActivityById(id)
+      .then((response) => {
+        const activity = response.data;
+        setFormData({
+          title: activity.title || "",
+          description: activity.description || "",
+          startDate: activity.startDate || "",
+          endDate: activity.endDate || "",
+          price: activity.price?.toString() || "0",
+          type: activity.type || "ACTIVITY",
+          visibility: activity.visibility || "PUBLIC",
+        });
+      })
+      .catch((err) =>
+        setError(getApiErrorMessage(err, "No se pudo cargar la actividad."))
+      )
+      .finally(() => setLoadingActivity(false));
+  }, [id, isAdmin]);
 
   if (!isAdmin) {
     return <Navigate to="/activities" replace />;
@@ -63,7 +91,7 @@ const ActivityFormPage = () => {
     setLoading(true);
 
     try {
-      const response = await createActivity({
+      const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         startDate: formData.startDate,
@@ -71,7 +99,11 @@ const ActivityFormPage = () => {
         price: Number(formData.price),
         type: formData.type,
         visibility: formData.visibility,
-      });
+      };
+
+      const response = editing
+        ? await updateActivity(id, payload)
+        : await createActivity(payload);
 
       navigate(`/activities/${response.data.id}`, { replace: true });
     } catch (err) {
@@ -88,8 +120,11 @@ const ActivityFormPage = () => {
           Volver a actividades
         </Link>
         <p className="activities-kicker">Administracion</p>
-        <h1>Publicar actividad o evento</h1>
+        <h1>{editing ? "Editar actividad o evento" : "Publicar actividad o evento"}</h1>
 
+        {loadingActivity ? (
+          <p className="activities-state">Cargando actividad...</p>
+        ) : (
         <form onSubmit={handleSubmit} noValidate>
           <div className="activity-form-grid">
             <label>
@@ -168,9 +203,10 @@ const ActivityFormPage = () => {
           {error && <div className="activities-alert error">{error}</div>}
 
           <button className="activities-primary" type="submit" disabled={loading}>
-            {loading ? "Publicando..." : "Publicar"}
+            {loading ? "Guardando..." : editing ? "Guardar cambios" : "Publicar"}
           </button>
         </form>
+        )}
       </section>
     </main>
   );

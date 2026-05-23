@@ -1,6 +1,7 @@
 package es.udc.anpaproject.backend.rest.controllers;
 
 import es.udc.anpaproject.backend.model.entities.Activity;
+import es.udc.anpaproject.backend.model.exceptions.ActivityDeletionException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.ActivityService;
@@ -37,9 +38,15 @@ public class ActivityController {
     public BlockDto<ActivityDto> getAll(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keywords,
             HttpServletRequest request) throws InstanceNotFoundException {
         
-        Block<Activity> block = activityService.findVisibleActivities(getOptionalUserId(request), page, size);
+        Block<Activity> block = activityService.findVisibleActivities(
+            getOptionalUserId(request),
+            keywords,
+            page,
+            size
+        );
         
         return new BlockDto<>(
             ActivityConverter.toActivityDtos(block.getItems()),
@@ -66,7 +73,8 @@ public class ActivityController {
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(
             @PathVariable Long id, 
-            @RequestAttribute Long userId) throws InstanceNotFoundException, PermissionException {
+            @RequestAttribute Long userId)
+            throws InstanceNotFoundException, PermissionException, ActivityDeletionException {
         activityService.deleteActivity(id, userId);
     }
 

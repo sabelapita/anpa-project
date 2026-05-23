@@ -1,7 +1,11 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { findActivityById } from "../api/activityApi";
-import { enrollInActivity, findMyEnrollments } from "../api/enrollmentApi";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { deleteActivity, findActivityById } from "../api/activityApi";
+import {
+  enrollInActivity,
+  findActivityEnrollments,
+  findMyEnrollments,
+} from "../api/enrollmentApi";
 import { createCheckoutSession } from "../api/paymentApi";
 import { AuthContext } from "../context/AuthContext";
 import { getApiErrorMessage } from "../utils/apiErrors";
@@ -16,6 +20,18 @@ const visibilityLabels = {
 const typeLabels = {
   ACTIVITY: "Actividad",
   EVENT: "Evento",
+};
+
+const getEnrollmentStatusLabel = (activity, enrollment) => {
+  if (!enrollment) {
+    return "";
+  }
+
+  if (!activity.price || activity.price <= 0 || enrollment.paid) {
+    return "Inscrito y pagado";
+  }
+
+  return "Inscrito, pago pendiente";
 };
 
 const formatPrice = (price) => {
@@ -45,8 +61,10 @@ const ActivityDetailPage = () => {
   const [enrollments, setEnrollments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const enrollment = useMemo(
     () => enrollments.find((item) => item.activityId === Number(id)),
@@ -61,7 +79,11 @@ const ActivityDetailPage = () => {
       try {
         const [activityResponse, enrollmentsResponse] = await Promise.all([
           findActivityById(id),
-          isAuthenticated && !isAdmin ? findMyEnrollments() : Promise.resolve({ data: [] }),
+          isAdmin
+            ? findActivityEnrollments(id)
+            : isAuthenticated
+              ? findMyEnrollments()
+              : Promise.resolve({ data: [] }),
         ]);
 
         setActivity(activityResponse.data);
@@ -107,6 +129,28 @@ const ActivityDetailPage = () => {
       setError(getApiErrorMessage(err, "No se pudo iniciar el pago."));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      "Se eliminara la actividad y sus inscripciones pendientes. Si existen pagos confirmados, el sistema no permitira borrarla. Continuar?"
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+
+    try {
+      await deleteActivity(activity.id);
+      navigate("/activities", { replace: true });
+    } catch (err) {
+      setError(getApiErrorMessage(err, "No se pudo eliminar la actividad."));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -165,6 +209,16 @@ const ActivityDetailPage = () => {
         {error && <div className="activities-alert error">{error}</div>}
 
         <div className="activity-detail-actions">
+          {isAdmin && (
+            <>
+              <Link className="activities-secondary" to={`/admin/activities/${activity.id}/edit`}>
+                Editar
+              </Link>
+              <button type="button" onClick={handleDelete} disabled={deleting}>
+                {deleting ? "Eliminando..." : "Eliminar"}
+              </button>
+            </>
+          )}
           {!isAuthenticated && activity.type === "ACTIVITY" && (
             <Link className="activities-primary" to="/login">
               Iniciar sesion para inscribirse
@@ -178,16 +232,57 @@ const ActivityDetailPage = () => {
               {submitting ? "Inscribiendo..." : "Inscribirme"}
             </button>
           )}
-          {enrollment && activity.price > 0 && !enrollment.paid && (
+          {enrollment && !isAdmin && activity.price > 0 && !enrollment.paid && (
             <button type="button" onClick={handlePayment} disabled={submitting}>
               {submitting ? "Preparando pago..." : "Pagar inscripcion"}
             </button>
           )}
-          {enrollment && (activity.price <= 0 || enrollment.paid) && (
-            <span className="activity-enrolled">Ya estas inscrito</span>
+          {enrollment && !isAdmin && (
+            <span className={enrollment.paid ? "activity-paid" : "activity-pending"}>
+              {getEnrollmentStatusLabel(activity, enrollment)}
+            </span>
           )}
         </div>
       </article>
+
+      {isAdmin && activity.type === "ACTIVITY" && (
+        <section className="activity-detail activity-enrollments-panel">
+          <h2>Inscripciones</h2>
+
+          {enrollments.length === 0 ? (
+            <p className="activity-empty">Todavia no hay usuarios inscritos.</p>
+          ) : (
+            <div className="activity-enrollments-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Nombre</th>
+                    <th>Estado</th>
+                    <th>Importe</th>
+                    <th>Fecha de pago</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {enrollments.map((item) => (
+                    <tr key={item.id}>
+                      <td>{item.userName}</td>
+                      <td>{item.userFullName}</td>
+                      <td>
+                        <span className={item.paid ? "activity-paid" : "activity-pending"}>
+                          {getEnrollmentStatusLabel(activity, item)}
+                        </span>
+                      </td>
+                      <td>{formatPrice((item.amountCents || 0) / 100)}</td>
+                      <td>{item.paymentDate ? formatDate(item.paymentDate) : "Pendiente"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
     </main>
   );
 };
