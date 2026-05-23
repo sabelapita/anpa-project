@@ -17,7 +17,13 @@ public interface ActivityService {
 
     Block<Activity> findActivities(int page, int size);
 
+    Block<Activity> findVisibleActivities(Long userId, int page, int size)
+        throws InstanceNotFoundException;
+
     ActivityDto findById(Long id) throws InstanceNotFoundException;
+
+    ActivityDto findVisibleById(Long id, Long userId)
+        throws InstanceNotFoundException, PermissionException;
 
     ActivityDto updateActivity(Long id, ActivityDto dto, Long userId)
             throws InstanceNotFoundException, PermissionException;

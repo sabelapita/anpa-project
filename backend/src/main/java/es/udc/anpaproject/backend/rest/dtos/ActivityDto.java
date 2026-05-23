@@ -3,6 +3,7 @@ package es.udc.anpaproject.backend.rest.dtos;
 import java.time.LocalDate;
 
 import es.udc.anpaproject.backend.model.entities.ActivityType;
+import es.udc.anpaproject.backend.model.entities.ActivityVisibility;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
@@ -15,11 +16,17 @@ public class ActivityDto {
     private Double price;
     private String imageUrl;
     private ActivityType type;
+    private ActivityVisibility visibility;
 
     public ActivityDto(){}
 
     public ActivityDto(Long id, String title, String description, LocalDate startDate, LocalDate endDate,
                        Double price, String imageUrl, ActivityType type) {
+        this(id, title, description, startDate, endDate, price, imageUrl, type, ActivityVisibility.PUBLIC);
+    }
+
+    public ActivityDto(Long id, String title, String description, LocalDate startDate, LocalDate endDate,
+                       Double price, String imageUrl, ActivityType type, ActivityVisibility visibility) {
         this.id = id;
         this.title = title != null ? title.trim() : null;
         this.description = description != null ? description.trim() : null;
@@ -28,6 +35,7 @@ public class ActivityDto {
         this.price = price;
         this.imageUrl = imageUrl != null ? imageUrl.trim() : null;
         this.type = type;
+        this.visibility = visibility;
     }
     
     // Getters y Setters
@@ -63,4 +71,8 @@ public class ActivityDto {
     @NotNull
         public ActivityType getType() { return type; }
     public void setType(ActivityType type) { this.type = type; }
+
+    @NotNull
+    public ActivityVisibility getVisibility() { return visibility; }
+    public void setVisibility(ActivityVisibility visibility) { this.visibility = visibility; }
 }

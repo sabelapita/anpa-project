@@ -87,6 +87,8 @@ public class UserServiceTest {
         User admin = userRepository.findById(registeredAdmin.getId()).get();
         admin.setRole(RoleType.ADMIN);
 
+        assertEquals(MembershipStatus.MEMBER, admin.getMembershipStatus());
+
         UserDto userDto = new UserDto(null, "membershipuser", "Normal", "User", "normal@udc.es", "USER");
         userDto.setPassword("password");
         UserDto registeredUser = userService.signUp(userDto);

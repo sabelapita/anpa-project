@@ -17,7 +17,8 @@ public class ActivityConverter {
                 activity.getEndDate(),
                 activity.getPrice(),
                 activity.getImageUrl(),
-                activity.getType()
+                activity.getType(),
+                activity.getVisibility()
         );
     }
 
@@ -36,6 +37,7 @@ public class ActivityConverter {
         activity.setPrice(dto.getPrice());
         activity.setImageUrl(dto.getImageUrl());
         activity.setType(dto.getType());
+        activity.setVisibility(dto.getVisibility());
         return activity;
     }
     
@@ -47,6 +49,7 @@ public class ActivityConverter {
         target.setPrice(dto.getPrice());
         target.setImageUrl(dto.getImageUrl());
         target.setType(dto.getType());
+        target.setVisibility(dto.getVisibility());
     }
 
 }

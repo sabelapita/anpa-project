@@ -30,7 +30,7 @@ CREATE TABLE Activity (
     price DOUBLE,
     imageUrl VARCHAR(255),
     type VARCHAR(50) NOT NULL, -- ACTIVITY o EVENT
-    isPublic BOOLEAN DEFAULT TRUE,
+    visibility VARCHAR(30) NOT NULL DEFAULT 'PUBLIC',
     createdBy_id BIGINT,
     CONSTRAINT ActivityPK PRIMARY KEY (id),
     CONSTRAINT FK_Activity_User FOREIGN KEY (createdBy_id) REFERENCES User(id)

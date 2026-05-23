@@ -42,6 +42,9 @@ const HomePage = () => {
             <Link className="btn btn-outline-success" to="/">
               Ver pagina publica
             </Link>
+            <Link className="btn btn-success" to="/activities">
+              Actividades
+            </Link>
             <button className="btn btn-danger" onClick={() => logout()}>
               Cerrar sesion
             </button>
@@ -108,6 +111,14 @@ const HomePage = () => {
           <p className="text-muted mt-4 mb-0">
             Tu perfil ya tiene permisos ampliados para los proximos modulos.
           </p>
+        )}
+
+        {isAdmin && (
+          <div className="mt-3">
+            <Link className="btn btn-outline-success" to="/admin/activities/new">
+              Publicar actividad
+            </Link>
+          </div>
         )}
       </section>
     </main>

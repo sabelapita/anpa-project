@@ -13,6 +13,7 @@ import es.udc.anpaproject.backend.model.entities.PaymentStatus;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
 import es.udc.anpaproject.backend.model.exceptions.PaymentException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
+import es.udc.anpaproject.backend.rest.dtos.PaymentResultDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -99,13 +100,53 @@ public class PaymentServiceImpl implements PaymentService {
                                                                 .build())
                                 .build();
 
-                Session session = Session.create(params);
+        Session session = Session.create(params);
 
                 enrollment.setStripeSessionId(session.getId());
                 enrollment.setPaymentStatus(PaymentStatus.PENDING);
                 enrollmentRepository.save(enrollment);
 
                 return session.getUrl();
+        }
+
+        @Override
+        public PaymentResultDto confirmCheckoutSession(String sessionId, Long userId)
+                throws InstanceNotFoundException, PermissionException, StripeException, PaymentException {
+
+                Stripe.apiKey = stripeSecretKey;
+
+                Session session = Session.retrieve(sessionId);
+                String enrollmentIdValue = session.getMetadata().get("enrollmentId");
+
+                if (enrollmentIdValue == null) {
+                        throw new PaymentException("project.exceptions.payment.invalidSession");
+                }
+
+                Long enrollmentId = Long.valueOf(enrollmentIdValue);
+                Enrollment enrollment = enrollmentRepository.findById(enrollmentId)
+                        .orElseThrow(() -> new InstanceNotFoundException(
+                                "project.entities.enrollment",
+                                enrollmentId
+                        ));
+
+                if (!enrollment.getUser().getId().equals(userId)) {
+                        throw new PermissionException();
+                }
+
+                if ("paid".equals(session.getPaymentStatus())) {
+                        enrollment.setPaid(true);
+                        enrollment.setPaymentStatus(PaymentStatus.PAID);
+                        enrollment.setPaymentDate(java.time.LocalDate.now());
+                        enrollment.setStripePaymentIntentId(session.getPaymentIntent());
+                        enrollment = enrollmentRepository.save(enrollment);
+                }
+
+                return new PaymentResultDto(
+                        enrollment.getId(),
+                        enrollment.getActivity().getId(),
+                        enrollment.getPaymentStatus().toString(),
+                        enrollment.isPaid()
+                );
         }
 
         @Override

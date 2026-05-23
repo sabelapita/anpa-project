@@ -8,6 +8,8 @@ import java.time.LocalDate;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.model.entities.Activity;
 import es.udc.anpaproject.backend.model.entities.ActivityType;
+import es.udc.anpaproject.backend.model.entities.ActivityVisibility;
+import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
@@ -72,6 +74,25 @@ public class ActivityServiceTest {
         return userDto;
     }
 
+    private UserDto createMember(String userName)
+            throws DuplicateInstanceException, InstanceNotFoundException {
+
+        UserDto userDto = createUser(userName);
+
+        User user = userRepository.findById(userDto.getId())
+                .orElseThrow(() ->
+                        new InstanceNotFoundException(
+                                "project.entities.user",
+                                userDto.getId()
+                        )
+                );
+
+        user.setMembershipStatus(MembershipStatus.MEMBER);
+        userRepository.save(user);
+
+        return userDto;
+    }
+
     private ActivityDto createActivityDto(String title, ActivityType type) {
         ActivityDto dto = new ActivityDto();
 
@@ -112,6 +133,7 @@ public class ActivityServiceTest {
         assertEquals("Descripción de prueba", activity.getDescription());
         assertEquals(25.0, activity.getPrice());
         assertEquals(ActivityType.ACTIVITY, activity.getType());
+        assertEquals(ActivityVisibility.PUBLIC, activity.getVisibility());
         assertNotNull(activity.getStartDate());
         assertNotNull(activity.getEndDate());
     }
@@ -173,6 +195,52 @@ public class ActivityServiceTest {
                                 activity.getId().equals(savedActivity.getId())
                         )
         );
+    }
+
+    @Test
+    public void testFindVisibleActivitiesForAnonymousOnlyReturnsPublicActivities()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
+
+        UserDto admin = createAdmin("adminVisibleAnonymous");
+        ActivityDto publicActivity = createActivityDto("Publica", ActivityType.ACTIVITY);
+        publicActivity.setVisibility(ActivityVisibility.PUBLIC);
+
+        ActivityDto registeredActivity = createActivityDto("Registrados", ActivityType.ACTIVITY);
+        registeredActivity.setVisibility(ActivityVisibility.REGISTERED);
+
+        ActivityDto savedPublic = activityService.createActivity(publicActivity, admin.getId(), null);
+        ActivityDto savedRegistered = activityService.createActivity(registeredActivity, admin.getId(), null);
+
+        Block<Activity> activities = activityService.findVisibleActivities(null, 0, 10);
+
+        assertTrue(activities.getItems().stream()
+                .anyMatch(activity -> activity.getId().equals(savedPublic.getId())));
+        assertFalse(activities.getItems().stream()
+                .anyMatch(activity -> activity.getId().equals(savedRegistered.getId())));
+    }
+
+    @Test
+    public void testFindVisibleActivityForMemberOnlyAllowsMembers()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
+
+        UserDto admin = createAdmin("adminMemberVisibility");
+        UserDto user = createUser("normalMemberVisibility");
+        UserDto member = createMember("memberVisibility");
+
+        ActivityDto memberActivity = createActivityDto("Solo socios", ActivityType.ACTIVITY);
+        memberActivity.setVisibility(ActivityVisibility.MEMBERS_ONLY);
+
+        ActivityDto savedActivity = activityService.createActivity(memberActivity, admin.getId(), null);
+
+        assertThrows(PermissionException.class, () ->
+                activityService.findVisibleById(savedActivity.getId(), user.getId()));
+
+        ActivityDto foundActivity = activityService.findVisibleById(savedActivity.getId(), member.getId());
+
+        assertEquals(savedActivity.getId(), foundActivity.getId());
+        assertEquals(ActivityVisibility.MEMBERS_ONLY, foundActivity.getVisibility());
     }
 
     @Test

@@ -111,6 +111,10 @@ public class User {
 
 	public void setRole(RoleType role) {
 		this.role = role;
+
+		if (role == RoleType.ADMIN) {
+			this.membershipStatus = MembershipStatus.MEMBER;
+		}
 	}
 
 	public MembershipStatus getMembershipStatus() {
@@ -118,6 +122,11 @@ public class User {
 	}
 
 	public void setMembershipStatus(MembershipStatus membershipStatus) {
+		if (role == RoleType.ADMIN) {
+			this.membershipStatus = MembershipStatus.MEMBER;
+			return;
+		}
+
 		this.membershipStatus = membershipStatus;
 	}
 

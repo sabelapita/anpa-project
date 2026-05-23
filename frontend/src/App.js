@@ -5,6 +5,11 @@ import { AuthProvider } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import PublicHomePage from "./pages/PublicHomePage";
+import ActivitiesPage from "./pages/ActivitiesPage";
+import ActivityDetailPage from "./pages/ActivityDetailPage";
+import ActivityFormPage from "./pages/ActivityFormPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentCancelPage from "./pages/PaymentCancelPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
@@ -16,6 +21,17 @@ const App = () => {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<PublicHomePage />} />
+          <Route path="/activities" element={<ActivitiesPage />} />
+          <Route path="/activities/:id" element={<ActivityDetailPage />} />
+          <Route
+            path="/payment/success"
+            element={
+              <ProtectedRoute>
+                <PaymentSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/payment/cancel" element={<PaymentCancelPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route
@@ -23,6 +39,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/activities/new"
+            element={
+              <ProtectedRoute>
+                <ActivityFormPage />
               </ProtectedRoute>
             }
           />

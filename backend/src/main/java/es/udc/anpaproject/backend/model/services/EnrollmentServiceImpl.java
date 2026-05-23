@@ -39,6 +39,10 @@ public class EnrollmentServiceImpl implements EnrollmentService {
         User user = getUser(userId);
         Activity activity = getActivity(activityId);
 
+        if (!canEnroll(activity, user)) {
+            throw new EnrollmentNotAllowedException();
+        }
+
         if (activity.getType() == ActivityType.EVENT) {
             throw new EnrollmentNotAllowedException();
         }
@@ -128,5 +132,14 @@ public class EnrollmentServiceImpl implements EnrollmentService {
                                 activityId
                         )
                 );
+    }
+
+    private boolean canEnroll(Activity activity, User user) {
+        if (activity.getVisibility() == ActivityVisibility.MEMBERS_ONLY) {
+            return user.getMembershipStatus() == MembershipStatus.MEMBER;
+        }
+
+        return activity.getVisibility() == ActivityVisibility.PUBLIC ||
+                activity.getVisibility() == ActivityVisibility.REGISTERED;
     }
 }

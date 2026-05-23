@@ -8,6 +8,8 @@ import java.util.List;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.model.entities.ActivityType;
+import es.udc.anpaproject.backend.model.entities.ActivityVisibility;
+import es.udc.anpaproject.backend.model.entities.MembershipStatus;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateEnrollmentException;
@@ -77,6 +79,25 @@ public class EnrollmentServiceTest {
         return userDto;
     }
 
+    private UserDto createMember(String userName)
+            throws DuplicateInstanceException, InstanceNotFoundException {
+
+        UserDto userDto = createUser(userName);
+
+        User user = userRepository.findById(userDto.getId())
+                .orElseThrow(() ->
+                        new InstanceNotFoundException(
+                                "project.entities.user",
+                                userDto.getId()
+                        )
+                );
+
+        user.setMembershipStatus(MembershipStatus.MEMBER);
+        userRepository.save(user);
+
+        return userDto;
+    }
+
     private ActivityDto createActivityDto(String title, ActivityType type) {
         ActivityDto dto = new ActivityDto();
 
@@ -101,6 +122,17 @@ public class EnrollmentServiceTest {
                 admin.getId(),
                 null
         );
+    }
+
+    private ActivityDto createActivity(String title, ActivityType type, ActivityVisibility visibility)
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
+
+        UserDto admin = createAdmin("admin" + title.replace(" ", "") + visibility.name());
+        ActivityDto activity = createActivityDto(title, type);
+        activity.setVisibility(visibility);
+
+        return activityService.createActivity(activity, admin.getId(), null);
     }
 
     @Test
@@ -151,6 +183,42 @@ public class EnrollmentServiceTest {
         assertThrows(EnrollmentNotAllowedException.class, () -> {
             enrollmentService.enroll(user.getId(), event.getId());
         });
+    }
+
+    @Test
+    public void testNonMemberCannotEnrollInMembersOnlyActivity()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException {
+
+        UserDto user = createUser("nonMemberEnrollUser");
+        ActivityDto activity = createActivity(
+                "SoloSocios",
+                ActivityType.ACTIVITY,
+                ActivityVisibility.MEMBERS_ONLY
+        );
+
+        assertThrows(EnrollmentNotAllowedException.class, () ->
+                enrollmentService.enroll(user.getId(), activity.getId()));
+    }
+
+    @Test
+    public void testMemberCanEnrollInMembersOnlyActivity()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException,
+            EnrollmentNotAllowedException, DuplicateEnrollmentException {
+
+        UserDto user = createMember("memberEnrollUser");
+        ActivityDto activity = createActivity(
+                "SoloSociosPermitida",
+                ActivityType.ACTIVITY,
+                ActivityVisibility.MEMBERS_ONLY
+        );
+
+        EnrollmentDto enrollment = enrollmentService.enroll(user.getId(), activity.getId());
+
+        assertNotNull(enrollment.getId());
+        assertEquals(user.getId(), enrollment.getUserId());
+        assertEquals(activity.getId(), enrollment.getActivityId());
     }
 
     @Test

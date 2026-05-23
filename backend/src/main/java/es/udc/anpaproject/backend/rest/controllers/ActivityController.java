@@ -8,6 +8,7 @@ import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.rest.dtos.ActivityConverter;
 import es.udc.anpaproject.backend.rest.dtos.ActivityDto;
 import es.udc.anpaproject.backend.rest.dtos.BlockDto;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +36,10 @@ public class ActivityController {
     @GetMapping
     public BlockDto<ActivityDto> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest request) throws InstanceNotFoundException {
         
-        Block<Activity> block = activityService.findActivities(page, size);
+        Block<Activity> block = activityService.findVisibleActivities(getOptionalUserId(request), page, size);
         
         return new BlockDto<>(
             ActivityConverter.toActivityDtos(block.getItems()),
@@ -46,8 +48,9 @@ public class ActivityController {
     }
 
     @GetMapping("/{id}")
-    public ActivityDto getById(@PathVariable Long id) throws InstanceNotFoundException {
-        return activityService.findById(id);
+    public ActivityDto getById(@PathVariable Long id, HttpServletRequest request)
+            throws InstanceNotFoundException, PermissionException {
+        return activityService.findVisibleById(id, getOptionalUserId(request));
     }
     
     @PutMapping("/{id}")
@@ -75,5 +78,11 @@ public class ActivityController {
             throws IOException, PermissionException, InstanceNotFoundException {
 
         return activityService.createActivity(dto, userId, null);
+    }
+
+    private Long getOptionalUserId(HttpServletRequest request) {
+        Object userId = request.getAttribute("userId");
+
+        return userId instanceof Long ? (Long) userId : null;
     }
 }

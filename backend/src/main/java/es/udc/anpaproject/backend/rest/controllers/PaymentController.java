@@ -7,6 +7,7 @@ import es.udc.anpaproject.backend.model.exceptions.PaymentException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.PaymentService;
 import es.udc.anpaproject.backend.rest.dtos.PaymentCheckoutDto;
+import es.udc.anpaproject.backend.rest.dtos.PaymentResultDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,16 @@ public class PaymentController {
         String checkoutUrl = paymentService.createCheckoutSession(enrollmentId, userId);
 
         return new PaymentCheckoutDto(checkoutUrl);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping("/checkout/sessions/{sessionId}/confirm")
+    public PaymentResultDto confirmCheckoutSession(
+            @PathVariable String sessionId,
+            @RequestAttribute Long userId)
+            throws InstanceNotFoundException, PermissionException, StripeException, PaymentException {
+
+        return paymentService.confirmCheckoutSession(sessionId, userId);
     }
 
     @PostMapping("/webhook")

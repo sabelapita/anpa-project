@@ -30,6 +30,9 @@ public class Activity {
     @Enumerated(EnumType.STRING)
     private ActivityType type;  // ACTIVITY o EVENT
 
+    @Enumerated(EnumType.STRING)
+    private ActivityVisibility visibility = ActivityVisibility.PUBLIC;
+
     @ManyToOne(fetch = FetchType.LAZY)
     private User createdBy;  // Usuario ADMIN que la creó
 
@@ -47,6 +50,7 @@ public class Activity {
         this.price = price;
         this.imageUrl = imageUrl;
         this.type = type;
+        this.visibility = ActivityVisibility.PUBLIC;
         this.createdBy = createdBy;
     }
 
@@ -66,6 +70,8 @@ public class Activity {
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public ActivityType getType() { return type; }
     public void setType(ActivityType type) { this.type = type; }
+    public ActivityVisibility getVisibility() { return visibility; }
+    public void setVisibility(ActivityVisibility visibility) { this.visibility = visibility; }
     public User getCreatedBy() { return createdBy; }
     public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
     public List<Enrollment> getEnrollments() {return enrollments; }
