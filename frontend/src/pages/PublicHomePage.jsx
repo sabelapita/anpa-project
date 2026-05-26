@@ -16,6 +16,11 @@ const PublicHomePage = () => {
           <Link className="public-nav-link" to="/activities">
             Actividades
           </Link>
+          {isAuthenticated && (
+            <Link className="public-nav-link" to="/documents">
+              Documentos
+            </Link>
+          )}
           {isAuthenticated ? (
             <Link className="public-nav-link public-nav-primary" to="/dashboard">
               Mi panel

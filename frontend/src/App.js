@@ -8,6 +8,8 @@ import PublicHomePage from "./pages/PublicHomePage";
 import ActivitiesPage from "./pages/ActivitiesPage";
 import ActivityDetailPage from "./pages/ActivityDetailPage";
 import ActivityFormPage from "./pages/ActivityFormPage";
+import DocumentsPage from "./pages/DocumentsPage";
+import DocumentFormPage from "./pages/DocumentFormPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/PaymentCancelPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -39,6 +41,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <HomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/documents"
+            element={
+              <ProtectedRoute>
+                <DocumentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/documents/new"
+            element={
+              <ProtectedRoute>
+                <DocumentFormPage />
               </ProtectedRoute>
             }
           />

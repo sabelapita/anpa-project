@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @RestController
 @RequestMapping("/documents")
@@ -35,9 +36,10 @@ public class DocumentController {
     @GetMapping
     public BlockDto<DocumentDto> getAll(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String keywords) {
 
-        Block<DocumentDto> block = documentService.findDocuments(page, size);
+        Block<DocumentDto> block = documentService.findDocuments(keywords, page, size);
 
         return new BlockDto<>(
                 block.getItems(),
@@ -54,13 +56,13 @@ public class DocumentController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(consumes = "multipart/form-data")
-    public DocumentDto upload(
+    public List<DocumentDto> upload(
             @Valid @RequestPart("data") DocumentDto dto,
-            @RequestPart("file") MultipartFile file,
+            @RequestPart("files") MultipartFile[] files,
             @RequestAttribute Long userId)
             throws InstanceNotFoundException, PermissionException, IOException,InvalidFileException {
 
-        return documentService.uploadDocument(dto, userId, file);
+        return documentService.uploadDocuments(dto, userId, files);
     }
 
     @GetMapping("/{documentId}/download")

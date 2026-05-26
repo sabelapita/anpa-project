@@ -44,7 +44,7 @@ public class DocumentDto {
         this.title = title != null ? title.trim() : null;
     }
 
-    @Size(max = 500)
+    @Size(max = 250)
     public String getDescription() {
         return description;
     }

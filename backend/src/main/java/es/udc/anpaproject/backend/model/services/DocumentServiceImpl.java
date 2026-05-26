@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -36,12 +39,27 @@ public class DocumentServiceImpl implements DocumentService {
 
     private final Path uploadDir = Paths.get("uploads", "documents");
 
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
+            "application/pdf",
+            "image/png",
+            "image/jpeg"
+    );
+
     @Override
     @Transactional(readOnly = true)
-    public Block<DocumentDto> findDocuments(int page, int size) {
+    public Block<DocumentDto> findDocuments(String keywords, int page, int size) {
 
-        Slice<Document> slice = documentRepository
-                .findByOrderByUploadedAtDesc(PageRequest.of(page, size));
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Slice<Document> slice;
+
+        if (keywords == null || keywords.trim().isEmpty()) {
+            slice = documentRepository.findByOrderByUploadedAtDesc(pageRequest);
+        } else {
+            slice = documentRepository.findByTitleContainingIgnoreCaseOrderByUploadedAtDesc(
+                    keywords.trim(),
+                    pageRequest
+            );
+        }
 
         return new Block<>(
                 DocumentConverter.toDocumentDtos(slice.getContent()),
@@ -62,35 +80,52 @@ public class DocumentServiceImpl implements DocumentService {
     public DocumentDto uploadDocument(DocumentDto dto, Long userId, MultipartFile file)
         throws InstanceNotFoundException, PermissionException, IOException, InvalidFileException {
 
+        List<DocumentDto> documents = uploadDocuments(dto, userId, new MultipartFile[] { file });
+
+        return documents.get(0);
+    }
+
+    @Override
+    public List<DocumentDto> uploadDocuments(DocumentDto dto, Long userId, MultipartFile[] files)
+        throws InstanceNotFoundException, PermissionException, IOException, InvalidFileException {
+
         User user = getUser(userId);
         checkAdmin(user);
 
-        if (file == null || file.isEmpty()) {
+        if (files == null || files.length == 0) {
             throw new InvalidFileException("project.exceptions.document.emptyFile");
+        }
+
+        for (MultipartFile file : files) {
+            validateFile(file);
         }
 
         if (!Files.exists(uploadDir)) {
             Files.createDirectories(uploadDir);
         }
 
-        String originalFileName = file.getOriginalFilename();
-        String storedFileName = UUID.randomUUID() + "_" + originalFileName;
+        List<DocumentDto> savedDocuments = new ArrayList<>();
 
-        Path filePath = uploadDir.resolve(storedFileName);
+        for (MultipartFile file : files) {
+            String originalFileName = file.getOriginalFilename();
+            String storedFileName = UUID.randomUUID() + "_" + originalFileName;
 
-        Files.copy(file.getInputStream(), filePath);
+            Path filePath = uploadDir.resolve(storedFileName);
 
-        Document document = DocumentConverter.toDocumentEntity(
-                dto,
-                user,
-                originalFileName,
-                filePath.toString(),
-                file.getContentType()
-        );
+            Files.copy(file.getInputStream(), filePath);
 
-        Document saved = documentRepository.save(document);
+            Document document = DocumentConverter.toDocumentEntity(
+                    dto,
+                    user,
+                    originalFileName,
+                    filePath.toString(),
+                    file.getContentType()
+            );
 
-        return DocumentConverter.toDocumentDto(saved);
+            savedDocuments.add(DocumentConverter.toDocumentDto(documentRepository.save(document)));
+        }
+
+        return savedDocuments;
     }
 
     @Override
@@ -132,6 +167,16 @@ public class DocumentServiceImpl implements DocumentService {
     private void checkAdmin(User user) throws PermissionException {
         if (user.getRole() != RoleType.ADMIN) {
             throw new PermissionException();
+        }
+    }
+
+    private void validateFile(MultipartFile file) throws InvalidFileException {
+        if (file == null || file.isEmpty()) {
+            throw new InvalidFileException("project.exceptions.document.emptyFile");
+        }
+
+        if (!ALLOWED_CONTENT_TYPES.contains(file.getContentType())) {
+            throw new InvalidFileException("project.exceptions.document.invalidType");
         }
     }
 }

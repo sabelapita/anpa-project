@@ -11,4 +11,6 @@ public interface DocumentRepository extends JpaRepository<Document, Long> {
 
     Slice<Document> findByOrderByUploadedAtDesc(Pageable pageable);
 
+    Slice<Document> findByTitleContainingIgnoreCaseOrderByUploadedAtDesc(String keywords, Pageable pageable);
+
 }

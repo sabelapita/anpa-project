@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
 import es.udc.anpaproject.backend.model.entities.Document;
@@ -42,11 +44,18 @@ public class DocumentServiceTest {
     private UserRepository userRepository;
 
     private Path lastUploadedPath;
+    private final List<Path> uploadedPaths = new ArrayList<>();
 
     @AfterEach
     public void cleanFiles() throws IOException {
         if (lastUploadedPath != null && Files.exists(lastUploadedPath)) {
             Files.delete(lastUploadedPath);
+        }
+
+        for (Path path : uploadedPaths) {
+            if (Files.exists(path)) {
+                Files.delete(path);
+            }
         }
     }
 
@@ -97,6 +106,15 @@ public class DocumentServiceTest {
                 "circular.pdf",
                 "application/pdf",
                 "Contenido de prueba del documento".getBytes()
+        );
+    }
+
+    private MockMultipartFile createMockImage() {
+        return new MockMultipartFile(
+                "file",
+                "autorizacion.jpg",
+                "image/jpeg",
+                "Contenido de prueba de la imagen".getBytes()
         );
     }
 
@@ -166,6 +184,78 @@ public class DocumentServiceTest {
     }
 
     @Test
+    public void testUploadImageDocumentAsAdmin()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException, InvalidFileException {
+
+        UserDto admin = createAdmin("adminImageDoc");
+
+        DocumentDto savedDocument = documentService.uploadDocument(
+                createDocumentDto(),
+                admin.getId(),
+                createMockImage()
+        );
+
+        assertEquals("autorizacion.jpg", savedDocument.getFileName());
+        assertEquals("image/jpeg", savedDocument.getContentType());
+
+        Document document = documentService.getDocumentForDownload(savedDocument.getId());
+        assertTrue(Files.exists(Paths.get(document.getFilePath())));
+
+        lastUploadedPath = Paths.get(document.getFilePath());
+    }
+
+    @Test
+    public void testUploadSeveralDocumentsAsAdmin()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException, InvalidFileException {
+
+        UserDto admin = createAdmin("adminSeveralDocs");
+
+        List<DocumentDto> savedDocuments = documentService.uploadDocuments(
+                createDocumentDto(),
+                admin.getId(),
+                new MockMultipartFile[] {
+                        createMockFile(),
+                        createMockImage()
+                }
+        );
+
+        assertEquals(2, savedDocuments.size());
+        assertEquals("circular.pdf", savedDocuments.get(0).getFileName());
+        assertEquals("autorizacion.jpg", savedDocuments.get(1).getFileName());
+
+        for (DocumentDto savedDocument : savedDocuments) {
+            Document document = documentService.getDocumentForDownload(savedDocument.getId());
+            Path path = Paths.get(document.getFilePath());
+            assertTrue(Files.exists(path));
+            uploadedPaths.add(path);
+        }
+    }
+
+    @Test
+    public void testUploadInvalidFileTypeThrowsInvalidFileException()
+            throws DuplicateInstanceException, InstanceNotFoundException {
+
+        UserDto admin = createAdmin("adminInvalidDocType");
+
+        MockMultipartFile invalidFile = new MockMultipartFile(
+                "file",
+                "notas.txt",
+                "text/plain",
+                "Contenido no permitido".getBytes()
+        );
+
+        assertThrows(InvalidFileException.class, () -> {
+            documentService.uploadDocument(
+                    createDocumentDto(),
+                    admin.getId(),
+                    invalidFile
+            );
+        });
+    }
+
+    @Test
     public void testFindById()
             throws DuplicateInstanceException, InstanceNotFoundException,
             PermissionException, IOException, InvalidFileException  {
@@ -226,7 +316,7 @@ public class DocumentServiceTest {
                 createMockFile()
         );
 
-        Block<DocumentDto> documents = documentService.findDocuments(0, 10);
+        Block<DocumentDto> documents = documentService.findDocuments(null, 0, 10);
 
         assertFalse(documents.getItems().isEmpty());
 
@@ -239,6 +329,44 @@ public class DocumentServiceTest {
 
         Document document = documentService.getDocumentForDownload(savedDocument.getId());
         lastUploadedPath = Paths.get(document.getFilePath());
+    }
+
+    @Test
+    public void testFindDocumentsByTitle()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException, InvalidFileException {
+
+        UserDto admin = createAdmin("adminSearchDocs");
+
+        DocumentDto authorizationDto = createDocumentDto();
+        authorizationDto.setTitle("Autorizacion imagenes");
+
+        DocumentDto menuDto = createDocumentDto();
+        menuDto.setTitle("Menu comedor");
+
+        DocumentDto savedAuthorization = documentService.uploadDocument(
+                authorizationDto,
+                admin.getId(),
+                createMockFile()
+        );
+
+        DocumentDto savedMenu = documentService.uploadDocument(
+                menuDto,
+                admin.getId(),
+                createMockImage()
+        );
+
+        Block<DocumentDto> documents = documentService.findDocuments("imagenes", 0, 10);
+
+        assertTrue(documents.getItems().stream()
+                .anyMatch(document -> document.getId().equals(savedAuthorization.getId())));
+        assertFalse(documents.getItems().stream()
+                .anyMatch(document -> document.getId().equals(savedMenu.getId())));
+
+        Document authorization = documentService.getDocumentForDownload(savedAuthorization.getId());
+        Document menu = documentService.getDocumentForDownload(savedMenu.getId());
+        uploadedPaths.add(Paths.get(authorization.getFilePath()));
+        uploadedPaths.add(Paths.get(menu.getFilePath()));
     }
 
     @Test

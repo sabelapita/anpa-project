@@ -45,6 +45,9 @@ const HomePage = () => {
             <Link className="btn btn-success" to="/activities">
               Actividades
             </Link>
+            <Link className="btn btn-outline-success" to="/documents">
+              Documentos
+            </Link>
             <button className="btn btn-danger" onClick={() => logout()}>
               Cerrar sesion
             </button>

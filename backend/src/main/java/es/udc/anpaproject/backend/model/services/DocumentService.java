@@ -9,16 +9,19 @@ import es.udc.anpaproject.backend.rest.dtos.DocumentDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface DocumentService {
 
-    Block<DocumentDto> findDocuments(int page, int size);
+    Block<DocumentDto> findDocuments(String keywords, int page, int size);
 
     DocumentDto findById(Long documentId) throws InstanceNotFoundException;
 
     DocumentDto uploadDocument(DocumentDto dto, Long userId, MultipartFile file)
         throws InstanceNotFoundException, PermissionException, IOException, InvalidFileException;
 
+    List<DocumentDto> uploadDocuments(DocumentDto dto, Long userId, MultipartFile[] files)
+        throws InstanceNotFoundException, PermissionException, IOException, InvalidFileException;
 
     Document getDocumentForDownload(Long documentId)
             throws InstanceNotFoundException;
