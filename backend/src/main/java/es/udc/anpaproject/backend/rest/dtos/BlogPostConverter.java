@@ -1,6 +1,7 @@
 package es.udc.anpaproject.backend.rest.dtos;
 
 import es.udc.anpaproject.backend.model.entities.BlogPost;
+import es.udc.anpaproject.backend.model.entities.BlogPostAttachment;
 import es.udc.anpaproject.backend.model.entities.User;
 
 import java.util.List;
@@ -19,9 +20,24 @@ public class BlogPostConverter {
                 post.getUpdatedAt(),
                 post.getAuthor().getId(),
                 post.isPublished(),
-                post.getCategory()
+                post.getCategory(),
+                toAttachmentDtos(post.getAttachments())
 
         );
+    }
+
+    public static BlogPostAttachmentDto toAttachmentDto(BlogPostAttachment attachment) {
+        return new BlogPostAttachmentDto(
+                attachment.getId(),
+                attachment.getFileName(),
+                attachment.getContentType()
+        );
+    }
+
+    public static List<BlogPostAttachmentDto> toAttachmentDtos(List<BlogPostAttachment> attachments) {
+        return attachments.stream()
+                .map(BlogPostConverter::toAttachmentDto)
+                .collect(Collectors.toList());
     }
 
     public static List<BlogPostDto> toPostDtos(List<BlogPost> posts) {

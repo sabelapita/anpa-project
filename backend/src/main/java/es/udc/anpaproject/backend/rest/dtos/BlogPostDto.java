@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlogPostDto {
 
@@ -15,6 +17,7 @@ public class BlogPostDto {
     private Long authorId;
     private boolean published = true;
     private String category;
+    private List<BlogPostAttachmentDto> attachments = new ArrayList<>();
 
     public BlogPostDto() {}
 
@@ -30,6 +33,15 @@ public class BlogPostDto {
         this.authorId = authorId;
         this.published = published;
         this.category = category != null ? category.trim() : null;
+    }
+
+    public BlogPostDto(Long id, String title, String content,
+                   LocalDateTime createdAt, LocalDateTime updatedAt,
+                   Long authorId, boolean published, String category,
+                   List<BlogPostAttachmentDto> attachments) {
+
+        this(id, title, content, createdAt, updatedAt, authorId, published, category);
+        this.attachments = attachments != null ? attachments : new ArrayList<>();
     }
 
 
@@ -100,6 +112,14 @@ public class BlogPostDto {
 
     public void setCategory(String category) {
         this.category = category != null ? category.trim() : null;
+    }
+
+    public List<BlogPostAttachmentDto> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(List<BlogPostAttachmentDto> attachments) {
+        this.attachments = attachments != null ? attachments : new ArrayList<>();
     }
 }
 

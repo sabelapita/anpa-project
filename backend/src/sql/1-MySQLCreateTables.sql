@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS Enrollment;
 DROP TABLE IF EXISTS Activity;
+DROP TABLE IF EXISTS PostAttachment;
 DROP TABLE IF EXISTS Post;
 DROP TABLE IF EXISTS Document;
 DROP TABLE IF EXISTS Message;
@@ -72,6 +73,18 @@ CREATE TABLE Post (
 ) ENGINE = InnoDB;
 
 CREATE INDEX PostIndexByAuthor ON Post (createdBy);
+
+CREATE TABLE PostAttachment (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    postId BIGINT NOT NULL,
+    fileName VARCHAR(255) NOT NULL,
+    filePath VARCHAR(255) NOT NULL,
+    contentType VARCHAR(100) NOT NULL,
+    CONSTRAINT PostAttachmentPK PRIMARY KEY (id),
+    CONSTRAINT FK_PostAttachment_Post FOREIGN KEY (postId) REFERENCES Post(id)
+) ENGINE = InnoDB;
+
+CREATE INDEX PostAttachmentIndexByPost ON PostAttachment (postId);
 
 CREATE TABLE Document (
     id BIGINT NOT NULL AUTO_INCREMENT,

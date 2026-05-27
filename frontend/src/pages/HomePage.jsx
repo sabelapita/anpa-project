@@ -45,6 +45,9 @@ const HomePage = () => {
             <Link className="btn btn-success" to="/activities">
               Actividades
             </Link>
+            <Link className="btn btn-outline-success" to="/blog">
+              Blog
+            </Link>
             <Link className="btn btn-outline-success" to="/documents">
               Documentos
             </Link>
@@ -120,6 +123,9 @@ const HomePage = () => {
           <div className="mt-3">
             <Link className="btn btn-outline-success" to="/admin/activities/new">
               Publicar actividad
+            </Link>
+            <Link className="btn btn-outline-success ms-2" to="/admin/blog/new">
+              Nueva entrada blog
             </Link>
           </div>
         )}

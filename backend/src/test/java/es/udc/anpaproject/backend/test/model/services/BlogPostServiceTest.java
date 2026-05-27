@@ -2,16 +2,28 @@ package es.udc.anpaproject.backend.test.model.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
+import es.udc.anpaproject.backend.model.daos.MessageRepository;
 import es.udc.anpaproject.backend.model.daos.UserRepository;
+import es.udc.anpaproject.backend.model.entities.BlogPostAttachment;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.BlogPostService;
 import es.udc.anpaproject.backend.model.services.Block;
@@ -32,6 +44,20 @@ public class BlogPostServiceTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MessageRepository messageRepository;
+
+    private final List<Path> uploadedPaths = new ArrayList<>();
+
+    @AfterEach
+    public void cleanFiles() throws IOException {
+        for (Path path : uploadedPaths) {
+            if (Files.exists(path)) {
+                Files.delete(path);
+            }
+        }
+    }
+
     private User createAdminUser(String userName) throws DuplicateInstanceException {
         UserDto userDto = new UserDto(null, userName, "Admin", "Test", userName + "@udc.es", "USER");
         userDto.setPassword("password");
@@ -51,6 +77,15 @@ public class BlogPostServiceTest {
         UserDto registeredUser = userService.signUp(userDto);
 
         return userRepository.findById(registeredUser.getId()).get();
+    }
+
+    private MockMultipartFile createMockImage() {
+        return new MockMultipartFile(
+                "files",
+                "excursion.png",
+                "image/png",
+                "contenido imagen".getBytes()
+        );
     }
 
     @Test
@@ -120,13 +155,165 @@ public class BlogPostServiceTest {
 
         blogPostService.createPost(postDto, admin.getId());
 
-        Block<BlogPostDto> block = blogPostService.findPublished(0, 10);
+        Block<BlogPostDto> block = blogPostService.findPublished(null, null, 0, 10);
 
         assertFalse(block.getItems().isEmpty());
         assertTrue(
                 block.getItems().stream()
                         .anyMatch(post -> post.getTitle().equals("Noticia publicada"))
         );
+    }
+
+    @Test
+    public void testFindPublishedPostsByTitleAndCategory()
+            throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
+
+        User admin = createAdminUser("adminsearchpost");
+
+        blogPostService.createPost(new BlogPostDto(
+                null,
+                "Excursion al museo",
+                "Contenido sobre la excursion",
+                null,
+                null,
+                null,
+                true,
+                "EXCURSIONES"
+        ), admin.getId());
+
+        blogPostService.createPost(new BlogPostDto(
+                null,
+                "Noticia del colegio",
+                "Contenido de noticia",
+                null,
+                null,
+                null,
+                true,
+                "NOTICIAS"
+        ), admin.getId());
+
+        Block<BlogPostDto> block = blogPostService.findPublished("museo", "excursiones", 0, 10);
+
+        assertTrue(block.getItems().stream()
+                .anyMatch(post -> post.getTitle().equals("Excursion al museo")));
+        assertFalse(block.getItems().stream()
+                .anyMatch(post -> post.getTitle().equals("Noticia del colegio")));
+    }
+
+    @Test
+    public void testCreatePostWithAttachmentAsAdmin()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException, InvalidFileException {
+
+        User admin = createAdminUser("adminpostattachment");
+
+        BlogPostDto postDto = new BlogPostDto(
+                null,
+                "Entrada con imagen",
+                "Contenido con adjunto",
+                null,
+                null,
+                null,
+                true,
+                "EXCURSIONES"
+        );
+
+        BlogPostDto createdPost = blogPostService.createPost(
+                postDto,
+                admin.getId(),
+                new MockMultipartFile[] { createMockImage() }
+        );
+
+        assertEquals(1, createdPost.getAttachments().size());
+        assertEquals("excursion.png", createdPost.getAttachments().get(0).getFileName());
+
+        BlogPostAttachment attachment = blogPostService.getAttachmentForDownload(
+                createdPost.getAttachments().get(0).getId(),
+                null
+        );
+
+        Path uploadedPath = Paths.get(attachment.getFilePath());
+        uploadedPaths.add(uploadedPath);
+        assertTrue(Files.exists(uploadedPath));
+    }
+
+    @Test
+    public void testUpdatePostCanDeleteExistingAttachment()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException, IOException, InvalidFileException {
+
+        User admin = createAdminUser("admindeletepostattachment");
+
+        BlogPostDto postDto = new BlogPostDto(
+                null,
+                "Entrada con adjunto editable",
+                "Contenido con adjunto",
+                null,
+                null,
+                null,
+                false,
+                "EXCURSIONES"
+        );
+
+        BlogPostDto createdPost = blogPostService.createPost(
+                postDto,
+                admin.getId(),
+                new MockMultipartFile[] { createMockImage() }
+        );
+
+        Long attachmentId = createdPost.getAttachments().get(0).getId();
+        BlogPostAttachment attachment = blogPostService.getAttachmentForDownload(attachmentId, admin.getId());
+        Path uploadedPath = Paths.get(attachment.getFilePath());
+        uploadedPaths.add(uploadedPath);
+
+        BlogPostDto updateDto = new BlogPostDto(
+                null,
+                "Entrada editada",
+                "Contenido editado",
+                null,
+                null,
+                null,
+                false,
+                "EXCURSIONES"
+        );
+
+        BlogPostDto updatedPost = blogPostService.updatePost(
+                createdPost.getId(),
+                updateDto,
+                admin.getId(),
+                null,
+                new Long[] { attachmentId }
+        );
+
+        assertTrue(updatedPost.getAttachments().isEmpty());
+        assertFalse(Files.exists(uploadedPath));
+    }
+
+    @Test
+    public void testPublishedPostCreatesInternalNoticeForUsers()
+            throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
+
+        User admin = createAdminUser("adminnoticepost");
+        User user = createNormalUser("usernoticepost");
+
+        BlogPostDto postDto = new BlogPostDto(
+                null,
+                "Nueva circular",
+                "Contenido publicado",
+                null,
+                null,
+                null,
+                true,
+                "NOTICIAS"
+        );
+
+        blogPostService.createPost(postDto, admin.getId());
+
+        assertTrue(messageRepository.findByUserIdOrderBySentAtDesc(
+                user.getId(),
+                org.springframework.data.domain.PageRequest.of(0, 10)
+        ).getContent().stream()
+                .anyMatch(message -> message.getSubject().equals("Nueva entrada del blog")));
     }
 
     @Test

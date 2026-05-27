@@ -10,6 +10,9 @@ import ActivityDetailPage from "./pages/ActivityDetailPage";
 import ActivityFormPage from "./pages/ActivityFormPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import DocumentFormPage from "./pages/DocumentFormPage";
+import BlogPage from "./pages/BlogPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
+import BlogFormPage from "./pages/BlogFormPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/PaymentCancelPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -23,6 +26,16 @@ const App = () => {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<PublicHomePage />} />
+          <Route path="/blog" element={<BlogPage />} />
+          <Route path="/blog/:id" element={<BlogDetailPage />} />
+          <Route
+            path="/admin/blog/:id"
+            element={
+              <ProtectedRoute>
+                <BlogDetailPage admin />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/activities" element={<ActivitiesPage />} />
           <Route path="/activities/:id" element={<ActivityDetailPage />} />
           <Route
@@ -57,6 +70,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <DocumentFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/blog/new"
+            element={
+              <ProtectedRoute>
+                <BlogFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/blog/:id/edit"
+            element={
+              <ProtectedRoute>
+                <BlogFormPage />
               </ProtectedRoute>
             }
           />
