@@ -3,10 +3,12 @@ package es.udc.anpaproject.backend.test.model.services;
 import static org.junit.jupiter.api.Assertions.*;
 
 import es.udc.anpaproject.backend.model.daos.UserRepository;
+import es.udc.anpaproject.backend.model.entities.MessageAttachment;
 import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.entities.User;
 import es.udc.anpaproject.backend.model.exceptions.DuplicateInstanceException;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.model.services.MessageService;
@@ -17,7 +19,10 @@ import es.udc.anpaproject.backend.rest.dtos.UserDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
 
 @SpringBootTest
 @Transactional
@@ -97,6 +102,37 @@ public class MessageServiceTest {
     }
 
     @Test
+    public void testCreateMessageWithAttachment()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            IOException, InvalidFileException, PermissionException {
+
+        UserDto user = createUser("messageAttachmentUser");
+
+        MessageDto savedMessage = messageService.createMessage(
+                createMessageDto(),
+                user.getId(),
+                new MockMultipartFile[] {
+                        new MockMultipartFile(
+                                "files",
+                                "justificante.pdf",
+                                "application/pdf",
+                                "contenido".getBytes()
+                        )
+                }
+        );
+
+        assertEquals(1, savedMessage.getAttachments().size());
+        assertEquals("justificante.pdf", savedMessage.getAttachments().get(0).getFileName());
+
+        MessageAttachment attachment = messageService.getAttachmentForDownload(
+                savedMessage.getAttachments().get(0).getId(),
+                user.getId()
+        );
+
+        assertEquals("justificante.pdf", attachment.getFileName());
+    }
+
+    @Test
     public void testFindUserMessages()
             throws DuplicateInstanceException, InstanceNotFoundException {
 
@@ -149,6 +185,35 @@ public class MessageServiceTest {
                         .anyMatch(message ->
                                 message.getId().equals(savedMessage.getId())
                         )
+        );
+    }
+
+    @Test
+    public void testFindAllMessagesAsAdminDoesNotReturnBlogNotices()
+            throws DuplicateInstanceException, InstanceNotFoundException,
+            PermissionException {
+
+        UserDto user = createUser("userBlogNoticeHidden");
+        UserDto admin = createAdmin("adminBlogNoticeHidden");
+
+        MessageDto notice = new MessageDto();
+        notice.setSubject("Nueva entrada del blog");
+        notice.setContent("Se ha publicado una nueva entrada.");
+
+        MessageDto savedNotice = messageService.createMessage(
+                notice,
+                user.getId()
+        );
+
+        Block<MessageDto> messages = messageService.findAllMessages(
+                admin.getId(),
+                0,
+                10
+        );
+
+        assertFalse(
+                messages.getItems().stream()
+                        .anyMatch(message -> message.getId().equals(savedNotice.getId()))
         );
     }
 
@@ -249,6 +314,58 @@ public void testRespondMessageAsAdmin()
             respondedMessage.getResponse()
     );
     assertNotNull(respondedMessage.getRespondedAt());
+    assertEquals(1, respondedMessage.getReplies().size());
+    assertTrue(respondedMessage.getReplies().get(0).isAdminReply());
+}
+
+@Test
+public void testUserCanReplyAfterAdminResponse()
+        throws DuplicateInstanceException, InstanceNotFoundException,
+        PermissionException {
+
+    UserDto user = createUser("userThreadReply");
+    UserDto admin = createAdmin("adminThreadReply");
+
+    MessageDto savedMessage = messageService.createMessage(
+            createMessageDto(),
+            user.getId()
+    );
+
+    messageService.respondMessage(
+            savedMessage.getId(),
+            admin.getId(),
+            "Respuesta inicial del ANPA."
+    );
+
+    MessageDto repliedMessage = messageService.replyMessage(
+            savedMessage.getId(),
+            user.getId(),
+            "Gracias, aporto mas informacion."
+    );
+
+    assertEquals(2, repliedMessage.getReplies().size());
+    assertFalse(repliedMessage.getReplies().get(1).isAdminReply());
+    assertEquals("Gracias, aporto mas informacion.", repliedMessage.getReplies().get(1).getContent());
+}
+
+@Test
+public void testUserCannotReplyBeforeAdminResponse()
+        throws DuplicateInstanceException, InstanceNotFoundException {
+
+    UserDto user = createUser("userThreadNoAdminReply");
+
+    MessageDto savedMessage = messageService.createMessage(
+            createMessageDto(),
+            user.getId()
+    );
+
+    assertThrows(PermissionException.class, () -> {
+        messageService.replyMessage(
+                savedMessage.getId(),
+                user.getId(),
+                "No deberia poder contestar todavia."
+        );
+    });
 }
 
 @Test

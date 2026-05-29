@@ -107,6 +107,35 @@ public class UserServiceTest {
     }
 
     @Test
+    public void testAdminCanFindUsersAndUpdateRole()
+            throws DuplicateInstanceException, InstanceNotFoundException, PermissionException {
+
+        UserDto adminDto = new UserDto(null, "useradminlist", "Admin", "User", "adminlist@udc.es", "USER");
+        adminDto.setPassword("password");
+        UserDto registeredAdmin = userService.signUp(adminDto);
+
+        User admin = userRepository.findById(registeredAdmin.getId()).get();
+        admin.setRole(RoleType.ADMIN);
+
+        UserDto userDto = new UserDto(null, "usermanaged", "Managed", "User", "managed@udc.es", "USER");
+        userDto.setPassword("password");
+        UserDto registeredUser = userService.signUp(userDto);
+
+        Block<UserDto> users = userService.findUsers(admin.getId(), "managed", 0, 10);
+        assertTrue(users.getItems().stream()
+            .anyMatch(user -> user.getId().equals(registeredUser.getId())));
+
+        UserDto updatedUser = userService.updateRole(
+            admin.getId(),
+            registeredUser.getId(),
+            RoleType.ADMIN
+        );
+
+        assertEquals("ADMIN", updatedUser.getRole());
+        assertEquals("MEMBER", updatedUser.getMembershipStatus());
+    }
+
+    @Test
     public void testAdminLoadedFromDatabaseIsAlwaysMember()
             throws DuplicateInstanceException, InstanceNotFoundException {
 

@@ -1,6 +1,8 @@
 package es.udc.anpaproject.backend.model.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +88,42 @@ public class UserServiceImpl implements UserService {
         user.setMembershipStatus(membershipStatus);
 
         return UserConverter.toUserDto(userRepository.save(user));
+    }
+
+    @Override
+    public UserDto updateRole(Long adminId, Long userId, RoleType role)
+        throws InstanceNotFoundException, PermissionException {
+
+        User admin = getUser(adminId);
+        checkAdmin(admin);
+
+        User user = getUser(userId);
+        user.setRole(role);
+
+        return UserConverter.toUserDto(userRepository.save(user));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Block<UserDto> findUsers(Long adminId, String keywords, int page, int size)
+        throws InstanceNotFoundException, PermissionException {
+
+        User admin = getUser(adminId);
+        checkAdmin(admin);
+
+        Slice<User> slice = keywords == null || keywords.trim().isEmpty()
+                ? userRepository.findByOrderByUserNameAsc(PageRequest.of(page, size))
+                : userRepository.findByUserNameContainingIgnoreCaseOrderByUserNameAsc(
+                        keywords.trim(),
+                        PageRequest.of(page, size)
+                );
+
+        return new Block<>(
+                slice.getContent().stream()
+                        .map(UserConverter::toUserDto)
+                        .toList(),
+                slice.hasNext()
+        );
     }
 
     @Override

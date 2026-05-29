@@ -51,6 +51,11 @@ const HomePage = () => {
             <Link className="btn btn-outline-success" to="/documents">
               Documentos
             </Link>
+            {!isAdmin && (
+              <Link className="btn btn-outline-success" to="/messages">
+                Mensajes
+              </Link>
+            )}
             <button className="btn btn-danger" onClick={() => logout()}>
               Cerrar sesion
             </button>
@@ -126,6 +131,12 @@ const HomePage = () => {
             </Link>
             <Link className="btn btn-outline-success ms-2" to="/admin/blog/new">
               Nueva entrada blog
+            </Link>
+            <Link className="btn btn-outline-success ms-2" to="/admin/messages">
+              Mensajes recibidos
+            </Link>
+            <Link className="btn btn-outline-success ms-2" to="/admin/users">
+              Usuarios
             </Link>
           </div>
         )}

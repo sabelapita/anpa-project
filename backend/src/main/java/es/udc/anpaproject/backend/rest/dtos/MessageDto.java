@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MessageDto {
 
@@ -14,6 +16,10 @@ public class MessageDto {
     private LocalDateTime sentAt;
     private String response;
     private LocalDateTime respondedAt;
+    private String userName;
+    private String userFullName;
+    private List<MessageAttachmentDto> attachments = new ArrayList<>();
+    private List<MessageReplyDto> replies = new ArrayList<>();
 
     public MessageDto() {}
 
@@ -27,6 +33,18 @@ public class MessageDto {
         this.sentAt = sentAt;
         this.response = response != null ? response.trim() : null;
         this.respondedAt = respondedAt;
+    }
+
+    public MessageDto(Long id, Long userId, String subject, String content,
+                      LocalDateTime sentAt, String response, LocalDateTime respondedAt,
+                      String userName, String userFullName, List<MessageAttachmentDto> attachments,
+                      List<MessageReplyDto> replies) {
+
+        this(id, userId, subject, content, sentAt, response, respondedAt);
+        this.userName = userName;
+        this.userFullName = userFullName;
+        this.attachments = attachments != null ? attachments : new ArrayList<>();
+        this.replies = replies != null ? replies : new ArrayList<>();
     }
 
     public Long getId() {
@@ -72,5 +90,29 @@ public class MessageDto {
 
     public LocalDateTime getRespondedAt() {
         return respondedAt;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getUserFullName() {
+        return userFullName;
+    }
+
+    public List<MessageAttachmentDto> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(List<MessageAttachmentDto> attachments) {
+        this.attachments = attachments != null ? attachments : new ArrayList<>();
+    }
+
+    public List<MessageReplyDto> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<MessageReplyDto> replies) {
+        this.replies = replies != null ? replies : new ArrayList<>();
     }
 }

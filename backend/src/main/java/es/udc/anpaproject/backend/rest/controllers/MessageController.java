@@ -1,6 +1,8 @@
 package es.udc.anpaproject.backend.rest.controllers;
 
+import es.udc.anpaproject.backend.model.entities.MessageAttachment;
 import es.udc.anpaproject.backend.model.exceptions.InstanceNotFoundException;
+import es.udc.anpaproject.backend.model.exceptions.InvalidFileException;
 import es.udc.anpaproject.backend.model.exceptions.PermissionException;
 import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.model.services.MessageService;
@@ -8,10 +10,22 @@ import es.udc.anpaproject.backend.rest.dtos.BlockDto;
 import es.udc.anpaproject.backend.rest.dtos.MessageDto;
 import es.udc.anpaproject.backend.rest.dtos.MessageResponseDto;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/messages")
@@ -67,6 +81,17 @@ public class MessageController {
         return messageService.createMessage(dto, userId);
     }
 
+    @PostMapping(consumes = "multipart/form-data")
+    @ResponseStatus(HttpStatus.CREATED)
+    public MessageDto createWithAttachments(
+            @Valid @RequestPart("data") MessageDto dto,
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @RequestAttribute Long userId)
+            throws InstanceNotFoundException, IOException, InvalidFileException {
+
+        return messageService.createMessage(dto, userId, files);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{messageId}/response")
     public MessageDto respond(@PathVariable Long messageId,
@@ -79,5 +104,39 @@ public class MessageController {
                 userId,
                 dto.getResponse()
         );
+    }
+
+    @PostMapping("/{messageId}/replies")
+    public MessageDto reply(@PathVariable Long messageId,
+                            @Valid @RequestBody MessageResponseDto dto,
+                            @RequestAttribute Long userId)
+            throws InstanceNotFoundException, PermissionException {
+
+        return messageService.replyMessage(
+                messageId,
+                userId,
+                dto.getResponse()
+        );
+    }
+
+    @GetMapping("/attachments/{attachmentId}/download")
+    public ResponseEntity<InputStreamResource> downloadAttachment(
+            @PathVariable Long attachmentId,
+            HttpServletRequest request)
+            throws InstanceNotFoundException, PermissionException, IOException {
+
+        MessageAttachment attachment = messageService.getAttachmentForDownload(
+                attachmentId,
+                (Long) request.getAttribute("userId")
+        );
+
+        Path path = Paths.get(attachment.getFilePath());
+        InputStreamResource resource = new InputStreamResource(new FileInputStream(path.toFile()));
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + attachment.getFileName() + "\"")
+                .contentType(MediaType.parseMediaType(attachment.getContentType()))
+                .body(resource);
     }
 }

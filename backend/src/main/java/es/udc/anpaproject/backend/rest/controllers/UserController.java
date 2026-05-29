@@ -15,10 +15,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import es.udc.anpaproject.backend.model.entities.MembershipStatus;
+import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.exceptions.*;
+import es.udc.anpaproject.backend.model.services.Block;
 import es.udc.anpaproject.backend.model.services.UserService;
 import es.udc.anpaproject.backend.rest.common.ErrorsDto;
 import es.udc.anpaproject.backend.rest.dtos.AuthenticatedUserDto;
+import es.udc.anpaproject.backend.rest.dtos.BlockDto;
 import es.udc.anpaproject.backend.rest.dtos.ChangePasswordParamsDto;
 import es.udc.anpaproject.backend.rest.dtos.LoginParamsDto; // ¡Añadido!
 import es.udc.anpaproject.backend.rest.dtos.UserDto;
@@ -87,6 +90,22 @@ public class UserController {
         return userService.loginFromId(userId);
     }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public BlockDto<UserDto> findUsers(@RequestAttribute Long userId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false) String keywords)
+        throws InstanceNotFoundException, PermissionException {
+
+        Block<UserDto> block = userService.findUsers(userId, keywords, page, size);
+
+        return new BlockDto<>(
+            block.getItems(),
+            block.getExistMoreItems()
+        );
+    }
+
     @PutMapping("/{id}")
     public UserDto updateProfile(@RequestAttribute Long userId, @PathVariable Long id,
         @Validated({UserDto.UpdateValidations.class}) @RequestBody UserDto userDto) 
@@ -106,6 +125,15 @@ public class UserController {
         throws InstanceNotFoundException, PermissionException {
 
         return userService.updateMembershipStatus(userId, id, value);
+    }
+
+    @PatchMapping("/{id}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public UserDto updateRole(@RequestAttribute Long userId, @PathVariable Long id,
+        @RequestParam RoleType value)
+        throws InstanceNotFoundException, PermissionException {
+
+        return userService.updateRole(userId, id, value);
     }
     
     @PostMapping("/{id}/changePassword")

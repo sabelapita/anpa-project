@@ -38,8 +38,10 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/users/signUp").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/loginFromServiceToken").authenticated()
+                .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/users/*").hasRole("USER")
                 .requestMatchers(HttpMethod.PATCH, "/users/*/membership").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/users/*/role").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/users/*/changePassword").hasRole("USER")
                
 				// Activities
@@ -74,7 +76,8 @@ public class SecurityConfig {
                 
                 // MESSAGES
                 .requestMatchers(HttpMethod.GET, "/messages/all").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.GET, "/messages/**").hasRole("USER")
+                .requestMatchers(HttpMethod.GET, "/messages/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/messages/*/replies").authenticated()
                 .requestMatchers(HttpMethod.POST, "/messages/**").hasRole("USER")
                 .requestMatchers(HttpMethod.PUT, "/messages/*/response").hasRole("ADMIN")
                 .anyRequest().denyAll()

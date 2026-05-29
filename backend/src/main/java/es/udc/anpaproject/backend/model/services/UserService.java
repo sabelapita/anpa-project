@@ -1,6 +1,7 @@
 package es.udc.anpaproject.backend.model.services;
 
 import es.udc.anpaproject.backend.model.entities.MembershipStatus;
+import es.udc.anpaproject.backend.model.entities.RoleType;
 import es.udc.anpaproject.backend.model.exceptions.*;
 import es.udc.anpaproject.backend.rest.dtos.*;
 
@@ -17,6 +18,12 @@ public interface UserService {
     UserDto updateProfile(Long id, UserDto userDto) throws InstanceNotFoundException;
 
     UserDto updateMembershipStatus(Long adminId, Long userId, MembershipStatus membershipStatus)
+        throws InstanceNotFoundException, PermissionException;
+
+    UserDto updateRole(Long adminId, Long userId, RoleType role)
+        throws InstanceNotFoundException, PermissionException;
+
+    Block<UserDto> findUsers(Long adminId, String keywords, int page, int size)
         throws InstanceNotFoundException, PermissionException;
     
     void changePassword(Long id, ChangePasswordParamsDto params)

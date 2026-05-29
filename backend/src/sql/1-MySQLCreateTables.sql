@@ -3,6 +3,8 @@ DROP TABLE IF EXISTS Activity;
 DROP TABLE IF EXISTS PostAttachment;
 DROP TABLE IF EXISTS Post;
 DROP TABLE IF EXISTS Document;
+DROP TABLE IF EXISTS MessageReply;
+DROP TABLE IF EXISTS MessageAttachment;
 DROP TABLE IF EXISTS Message;
 DROP TABLE IF EXISTS Event;
 DROP TABLE IF EXISTS User;
@@ -112,3 +114,27 @@ CREATE TABLE Message (
 ) ENGINE = InnoDB;
 
 CREATE INDEX MessageIndexByUser ON Message (userId);
+
+CREATE TABLE MessageAttachment (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    messageId BIGINT NOT NULL,
+    fileName VARCHAR(255) NOT NULL,
+    filePath VARCHAR(255) NOT NULL,
+    contentType VARCHAR(100) NOT NULL,
+    CONSTRAINT MessageAttachmentPK PRIMARY KEY (id),
+    CONSTRAINT FK_MessageAttachment_Message FOREIGN KEY (messageId) REFERENCES Message(id)
+) ENGINE = InnoDB;
+
+CREATE INDEX MessageAttachmentIndexByMessage ON MessageAttachment (messageId);
+
+CREATE TABLE MessageReply (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    messageId BIGINT NOT NULL,
+    adminReply BOOLEAN NOT NULL,
+    content TEXT NOT NULL,
+    sentAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT MessageReplyPK PRIMARY KEY (id),
+    CONSTRAINT FK_MessageReply_Message FOREIGN KEY (messageId) REFERENCES Message(id)
+) ENGINE = InnoDB;
+
+CREATE INDEX MessageReplyIndexByMessage ON MessageReply (messageId);

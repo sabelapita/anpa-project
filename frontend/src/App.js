@@ -13,6 +13,10 @@ import DocumentFormPage from "./pages/DocumentFormPage";
 import BlogPage from "./pages/BlogPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
 import BlogFormPage from "./pages/BlogFormPage";
+import MessagesPage from "./pages/MessagesPage";
+import MessageDetailPage from "./pages/MessageDetailPage";
+import MessageFormPage from "./pages/MessageFormPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/PaymentCancelPage";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -62,6 +66,54 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <DocumentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages"
+            element={
+              <ProtectedRoute>
+                <MessagesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages/new"
+            element={
+              <ProtectedRoute>
+                <MessageFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/messages/:id"
+            element={
+              <ProtectedRoute>
+                <MessageDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/messages"
+            element={
+              <ProtectedRoute>
+                <MessagesPage admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/messages/:id"
+            element={
+              <ProtectedRoute>
+                <MessageDetailPage admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <AdminUsersPage />
               </ProtectedRoute>
             }
           />

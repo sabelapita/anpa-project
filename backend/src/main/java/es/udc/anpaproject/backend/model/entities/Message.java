@@ -3,6 +3,8 @@ package es.udc.anpaproject.backend.model.entities;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Message")
@@ -29,6 +31,13 @@ public class Message {
     private String response;
 
     private LocalDateTime respondedAt;
+
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageAttachment> attachments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sentAt ASC")
+    private List<MessageReply> replies = new ArrayList<>();
 
     public Message() {}
 
@@ -70,5 +79,31 @@ public class Message {
     public LocalDateTime getRespondedAt() { return respondedAt; }
     public void setRespondedAt(LocalDateTime respondedAt) {
         this.respondedAt = respondedAt;
+    }
+
+    public List<MessageAttachment> getAttachments() {
+        return attachments;
+    }
+
+    public void setAttachments(List<MessageAttachment> attachments) {
+        this.attachments = attachments;
+    }
+
+    public void addAttachment(MessageAttachment attachment) {
+        attachment.setMessage(this);
+        attachments.add(attachment);
+    }
+
+    public List<MessageReply> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<MessageReply> replies) {
+        this.replies = replies;
+    }
+
+    public void addReply(MessageReply reply) {
+        reply.setMessage(this);
+        replies.add(reply);
     }
 }

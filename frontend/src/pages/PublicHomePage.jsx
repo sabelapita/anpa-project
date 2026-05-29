@@ -4,7 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import "./PublicHomePage.css";
 
 const PublicHomePage = () => {
-  const { isAuthenticated, user } = useContext(AuthContext);
+  const { isAuthenticated, isAdmin, user } = useContext(AuthContext);
 
   return (
     <main className="public-page">
@@ -22,6 +22,11 @@ const PublicHomePage = () => {
           {isAuthenticated && (
             <Link className="public-nav-link" to="/documents">
               Documentos
+            </Link>
+          )}
+          {isAuthenticated && (
+            <Link className="public-nav-link" to={isAdmin ? "/admin/messages" : "/messages"}>
+              {isAdmin ? "Mensajes recibidos" : "Mensajes"}
             </Link>
           )}
           {isAuthenticated ? (

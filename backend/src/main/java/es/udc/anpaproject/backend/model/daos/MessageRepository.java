@@ -13,4 +13,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Slice<Message> findByUserIdOrderBySentAtDesc(Long userId, Pageable pageable);
 
     Slice<Message> findByOrderBySentAtDesc(Pageable pageable);
+
+    Slice<Message> findBySubjectNotOrderBySentAtDesc(String subject, Pageable pageable);
 }
