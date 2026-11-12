@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS Document;
 DROP TABLE IF EXISTS MessageReply;
 DROP TABLE IF EXISTS MessageAttachment;
 DROP TABLE IF EXISTS Message;
+DROP TABLE IF EXISTS PasswordResetToken;
 DROP TABLE IF EXISTS Event;
 DROP TABLE IF EXISTS User;
 
@@ -19,10 +20,26 @@ CREATE TABLE User (
     role TINYINT NOT NULL,
     membershipStatus VARCHAR(30) NOT NULL DEFAULT 'NON_MEMBER',
     CONSTRAINT UserPK PRIMARY KEY (id),
-    CONSTRAINT UserNameUniqueKey UNIQUE (userName)
+    CONSTRAINT UserNameUniqueKey UNIQUE (userName),
+    CONSTRAINT UserEmailUniqueKey UNIQUE (email)
 ) ENGINE = InnoDB;
 
 CREATE INDEX UserIndexByUserName ON User (userName);
+CREATE INDEX UserIndexByEmail ON User (email);
+
+CREATE TABLE PasswordResetToken (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    userId BIGINT NOT NULL,
+    tokenHash VARCHAR(64) NOT NULL,
+    expiresAt TIMESTAMP NOT NULL,
+    createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usedAt TIMESTAMP NULL,
+    CONSTRAINT PasswordResetTokenPK PRIMARY KEY (id),
+    CONSTRAINT PasswordResetTokenHashUniqueKey UNIQUE (tokenHash),
+    CONSTRAINT FK_PasswordResetToken_User FOREIGN KEY (userId) REFERENCES User(id)
+) ENGINE = InnoDB;
+
+CREATE INDEX PasswordResetTokenIndexByUser ON PasswordResetToken (userId);
 
 CREATE TABLE Activity (
     id BIGINT NOT NULL AUTO_INCREMENT,

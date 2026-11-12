@@ -108,6 +108,12 @@
   font-size: 0.94rem;
 }
 
+.auth-alert-success {
+  border-color: #9bd3b7;
+  color: #155b36;
+  background: #eefaf3;
+}
+
 .auth-submit {
   width: 100%;
   min-height: 44px;
@@ -132,6 +138,11 @@
   margin: 20px 0 0;
   color: #66736f;
   text-align: center;
+}
+
+.auth-switch-compact {
+  margin-top: 10px;
+  font-size: 0.94rem;
 }
 
 .auth-switch a {

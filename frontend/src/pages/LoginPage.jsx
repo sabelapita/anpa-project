@@ -121,6 +121,9 @@ const LoginPage = () => {
         <p className="auth-switch">
           ¿No tienes cuenta? <Link to="/signup">Crear una cuenta</Link>
         </p>
+        <p className="auth-switch auth-switch-compact">
+          <Link to="/forgot-password">He olvidado mi contrasena</Link>
+        </p>
       </section>
     </main>
   );

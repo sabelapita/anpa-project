@@ -34,12 +34,28 @@ spring:
       ddl-auto: none
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
 stripe:
   secret-key: sk_test_51TWJlxKIrE7RXHVwCgMxtxKCuPN4DBni6tmTKP6urZVgpqUFsZL8fYOOWlGUTn5jRY6hdQU6n7Bi8kJg5D87dVku00lzYJGgTJ
   webhook-secret: whsec_b5619bf6c2efc132f1334f7b105c972cdf56ec0a354d5faa21188d04f597ccc7
   success-url: http://localhost:3000/payment/success
   cancel-url: http://localhost:3000/payment/cancel
 project:
+  frontend:
+    base-url: http://localhost:3000
+  passwordReset:
+    expirationMinutes: 30
+    from: ${MAIL_FROM:no-reply@anpa-project.local}
   jwt:
     signKey: W27sJe29ATI7dR3juV5lWkT9WgS2C8RT
     expirationMinutes: 1440

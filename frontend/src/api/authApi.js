@@ -13,3 +13,9 @@ export const signUpUser = ({ userName, password, firstName, lastName, email }) =
   });
 
 export const loginFromServiceToken = () => api.post("/users/loginFromServiceToken");
+
+export const requestPasswordReset = ({ email }) =>
+  api.post("/users/forgotPassword", { email });
+
+export const resetPassword = ({ token, newPassword }) =>
+  api.post("/users/resetPassword", { token, newPassword });

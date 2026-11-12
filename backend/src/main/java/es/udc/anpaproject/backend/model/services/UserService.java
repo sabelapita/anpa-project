@@ -15,7 +15,7 @@ public interface UserService {
     // Necesario para que el front recupere la sesión (F5)
     AuthenticatedUserDto loginFromId(Long id) throws InstanceNotFoundException;
         
-    UserDto updateProfile(Long id, UserDto userDto) throws InstanceNotFoundException;
+    UserDto updateProfile(Long id, UserDto userDto) throws InstanceNotFoundException, DuplicateInstanceException;
 
     UserDto updateMembershipStatus(Long adminId, Long userId, MembershipStatus membershipStatus)
         throws InstanceNotFoundException, PermissionException;
@@ -28,4 +28,8 @@ public interface UserService {
     
     void changePassword(Long id, ChangePasswordParamsDto params)
         throws InstanceNotFoundException, IncorrectPasswordException;
+
+    void requestPasswordReset(ForgotPasswordParamsDto params);
+
+    void resetPassword(ResetPasswordParamsDto params) throws InvalidPasswordResetTokenException;
 }

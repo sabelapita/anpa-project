@@ -15,7 +15,10 @@ import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "User",
-       uniqueConstraints = {@UniqueConstraint(columnNames = {"userName"})})
+       uniqueConstraints = {
+		   @UniqueConstraint(columnNames = {"userName"}),
+		   @UniqueConstraint(columnNames = {"email"})
+	   })
 public class User {
 	
 	@Id
@@ -34,7 +37,7 @@ public class User {
     @Column(nullable = false, length = 60)
 	private String lastName;
 
-    @Column(nullable = false, length = 60)
+    @Column(nullable = false, unique = true, length = 60)
 	private String email;
 
 	@Enumerated(EnumType.ORDINAL)

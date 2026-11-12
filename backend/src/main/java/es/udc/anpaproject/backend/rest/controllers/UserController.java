@@ -23,6 +23,8 @@ import es.udc.anpaproject.backend.rest.common.ErrorsDto;
 import es.udc.anpaproject.backend.rest.dtos.AuthenticatedUserDto;
 import es.udc.anpaproject.backend.rest.dtos.BlockDto;
 import es.udc.anpaproject.backend.rest.dtos.ChangePasswordParamsDto;
+import es.udc.anpaproject.backend.rest.dtos.ForgotPasswordParamsDto;
+import es.udc.anpaproject.backend.rest.dtos.ResetPasswordParamsDto;
 import es.udc.anpaproject.backend.rest.dtos.LoginParamsDto; // ¡Añadido!
 import es.udc.anpaproject.backend.rest.dtos.UserDto;
 
@@ -56,6 +58,15 @@ public class UserController {
         return new ErrorsDto(errorMessage);
     }
 
+    @ExceptionHandler(InvalidPasswordResetTokenException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseBody
+    public ErrorsDto handleInvalidPasswordResetTokenException(InvalidPasswordResetTokenException exception, Locale locale) {
+        String errorMessage = messageSource.getMessage("project.exceptions.InvalidPasswordResetTokenException", null,
+                "project.exceptions.InvalidPasswordResetTokenException", locale);
+        return new ErrorsDto(errorMessage);
+    }
+
     // --- Endpoints ---
 
     @PostMapping("/signUp")
@@ -84,6 +95,19 @@ public class UserController {
         return userService.login(params);
     }
 
+    @PostMapping("/forgotPassword")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void forgotPassword(@Validated @RequestBody ForgotPasswordParamsDto params) {
+        userService.requestPasswordReset(params);
+    }
+
+    @PostMapping("/resetPassword")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void resetPassword(@Validated @RequestBody ResetPasswordParamsDto params)
+        throws InvalidPasswordResetTokenException {
+        userService.resetPassword(params);
+    }
+
     @PostMapping("/loginFromServiceToken")
     public AuthenticatedUserDto loginFromServiceToken(@RequestAttribute Long userId) 
         throws InstanceNotFoundException {
@@ -109,7 +133,7 @@ public class UserController {
     @PutMapping("/{id}")
     public UserDto updateProfile(@RequestAttribute Long userId, @PathVariable Long id,
         @Validated({UserDto.UpdateValidations.class}) @RequestBody UserDto userDto) 
-        throws InstanceNotFoundException, PermissionException {
+        throws InstanceNotFoundException, PermissionException, DuplicateInstanceException {
                 
         if (!id.equals(userId)) {
             throw new PermissionException();
